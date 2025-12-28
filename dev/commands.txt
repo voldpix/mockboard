@@ -13,4 +13,8 @@ Change git branch name: git branch -m <name>
 ---
 Run custom compose file: docker compose -f <compose-file.yml> up -d
 <root> docker compose -f dev/mongo-compose.yml up -d
+
+---
+Dev Actuator access: http://127.0.0.1:8000/actuator
+
 ---
