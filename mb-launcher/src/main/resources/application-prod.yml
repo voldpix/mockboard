@@ -1,0 +1,11 @@
+spring:
+    devtools:
+        restart:
+            enabled: true
+        livereload:
+            enabled: true
+
+logging:
+    level:
+        dev.mockboard: DEBUG
+        org.springframework.web: DEBUG

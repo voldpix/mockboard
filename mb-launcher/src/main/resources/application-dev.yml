@@ -1,0 +1,11 @@
+spring:
+    application:
+        name: mockboard
+    main:
+        banner-mode: off
+    output:
+        ansi:
+            enabled: always
+
+server:
+    port: 8080
