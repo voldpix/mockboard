@@ -7,7 +7,7 @@ spring:
     main:
         banner-mode: off
     profiles:
-        active: ${ACTIVE_ENV:default_value}
+        active: ${ACTIVE_ENV:dev}
     threads:
         virtual:
             enabled: ${VI_THREADS:true}

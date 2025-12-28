@@ -1,4 +1,4 @@
-package dev.mockboard.common.exception;
+package dev.mockboard.core.common.exception;
 
 public class NotFoundException extends RuntimeException {
 

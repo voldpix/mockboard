@@ -18,4 +18,10 @@ public class BoardDoc implements Serializable {
 
     @Id
     private String id;
+
+    private String boardId;
+
+    private String apiKey;
+
+    private String ownerToken;
 }

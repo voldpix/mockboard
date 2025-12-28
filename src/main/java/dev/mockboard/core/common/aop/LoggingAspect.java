@@ -1,4 +1,4 @@
-package dev.mockboard.common.aop;
+package dev.mockboard.core.common.aop;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +75,7 @@ public class LoggingAspect {
             return result;
         } catch (IllegalArgumentException e) {
             log.error(
-                    "Illegal argument: {} in {}()",
+                    "Illegal argument: {} in {}",
                     Arrays.toString(joinPoint.getArgs()),
                     joinPoint.getSignature().toShortString()
             );
@@ -88,7 +88,7 @@ public class LoggingAspect {
         var request = getCurrentRequest();
         if (request != null && log.isInfoEnabled()) {
             log.info(
-                    "REST Request: {} {} - Method: {}()",
+                    "Req: {} {}, method: {}",
                     request.getMethod(),
                     request.getRequestURI(),
                     joinPoint.getSignature().toShortString()
@@ -102,7 +102,7 @@ public class LoggingAspect {
 
             if (request != null && log.isInfoEnabled()) {
                 log.info(
-                        "REST Response: {} {} - Status: SUCCESS - Time: {}ms",
+                        "Resp: {} {}, status: SUCCESS, time: {}ms",
                         request.getMethod(),
                         request.getRequestURI(),
                         executionTime
@@ -115,7 +115,7 @@ public class LoggingAspect {
 
             if (request != null) {
                 log.error(
-                        "REST Response: {} {} - Status: ERROR - Time: {}ms - Exception: {}",
+                        "Resp: {} {}, status: ERROR, time: {}ms, exception: {}",
                         request.getMethod(),
                         request.getRequestURI(),
                         executionTime,
