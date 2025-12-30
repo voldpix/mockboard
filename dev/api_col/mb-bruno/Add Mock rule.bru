@@ -1,0 +1,27 @@
+meta {
+  name: Add Mock rule
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{SERVER_URL}}/api/boards/PWkzRkRePJYeDxy7MlZ9oo59n/mocks
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "path": "/api/users/*/profile",
+    "headers": {
+      "X-Header": "my-value"
+    },
+    "body": "",
+    "statusCode": 200
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

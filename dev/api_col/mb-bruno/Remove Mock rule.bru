@@ -1,0 +1,27 @@
+meta {
+  name: Remove Mock rule
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{SERVER_URL}}/api/boards/PWkzRkRePJYeDxy7MlZ9oo59n/mocks/1mcOge
+  body: none
+  auth: inherit
+}
+
+body:json {
+  {
+    "path": "/api/users",
+    "headers": {
+      "X-Header": "my-value"
+    },
+    "body": "",
+    "statusCode": 200
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

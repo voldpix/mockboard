@@ -45,7 +45,7 @@ public class LoggingAspect {
     @AfterThrowing(pointcut = "applicationPackagePointcut() && springBeanPointcut()", throwing = "e")
     public void logAfterThrowing(JoinPoint joinPoint, Throwable e) {
         log.error(
-                "Exception in {}() with cause = '{}' and exception = '{}'",
+                "Exception in {} with cause = '{}' and exception = '{}'",
                 joinPoint.getSignature().toShortString(),
                 e.getCause() != null ? e.getCause() : "NULL",
                 e.getMessage(),
@@ -57,7 +57,7 @@ public class LoggingAspect {
     public Object logAround(ProceedingJoinPoint joinPoint) throws Throwable {
         if (log.isDebugEnabled()) {
             log.debug(
-                    "Enter: {}() with argument[s] = {}",
+                    "Enter: {} with argument[s] = {}",
                     joinPoint.getSignature().toShortString(),
                     Arrays.toString(joinPoint.getArgs())
             );
@@ -67,7 +67,7 @@ public class LoggingAspect {
             var result = joinPoint.proceed();
             if (log.isDebugEnabled()) {
                 log.debug(
-                        "Exit: {}() with result = {}",
+                        "Exit: {} with result = {}",
                         joinPoint.getSignature().toShortString(),
                         result
                 );

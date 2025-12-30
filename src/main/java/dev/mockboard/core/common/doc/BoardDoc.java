@@ -1,4 +1,4 @@
-package dev.mockboard.storage.data.doc;
+package dev.mockboard.core.common.doc;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,18 +26,24 @@ public class BoardDoc implements Serializable {
     private String id;
 
     @Indexed
+    private String boardId;
+
+    @Indexed
     private String apiKey;
 
     @Indexed
     private String ownerToken;
 
-    private boolean shared;
-
     private List<MockRule> mockRules = new ArrayList<>();
 
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public void addMockRule(MockRule mockRule) {
         mockRules.add(mockRule);
+    }
+
+    public void removeMockRule(String mockId) {
+        mockRules.removeIf(mockRule -> mockRule.getId().equals(mockId));
     }
 }
