@@ -1,0 +1,27 @@
+meta {
+  name: Update Mock rule
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{SERVER_URL}}/api/boards/6955a56b3baa4f77dd96a3b7/mocks/6955b0863498a2ce661f4008
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "method": "POST",
+    "path": "/api/users/*",
+    "headers": {
+      "X-Header": "my-value"
+    },
+    "statusCode": 200
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -15,6 +15,8 @@ import java.util.Map;
 public class MockRuleDto {
 
     private String id;
+    private String boardId;
+    private String method;
     private String path;
     private Map<String, String> headers;
     private String body;

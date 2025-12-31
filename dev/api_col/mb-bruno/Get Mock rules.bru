@@ -1,12 +1,12 @@
 meta {
   name: Get Mock rules
   type: http
-  seq: 5
+  seq: 6
 }
 
 get {
-  url: {{SERVER_URL}}/api/boards/PWkzRkRePJYeDxy7MlZ9oo59n/mocks
-  body: json
+  url: {{SERVER_URL}}/api/boards/6955a56b3baa4f77dd96a3b7/mocks
+  body: none
   auth: inherit
 }
 
@@ -16,7 +16,7 @@ body:json {
     "headers": {
       "X-Header": "my-value"
     },
-    "body": "",
+    "body": "{\n  \"name\": \"Vold\",\n  \"email\": \"vold@mockboard.dev\",\n  \"nested_json\": {\n    \"key1\": \"value1\"\n  },\n  \"nested_array\": [\n    \"arrVal1\", \"arrVal2\", \"arrVal3\"\n  ]\n}",
     "statusCode": 200
   }
 }

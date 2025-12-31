@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class BoardDto {
 
     private String id;
-    private String boardId;
     private String apiKey;
+    private String ownerToken;
     private LocalDateTime createdAt;
 }

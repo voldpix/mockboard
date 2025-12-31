@@ -1,4 +1,4 @@
-package dev.mockboard.engine;
+package dev.mockboard.core.common.domain;
 
 import lombok.Getter;
 
@@ -34,7 +34,7 @@ public class PathPattern {
         }
     }
 
-    boolean matches(String requestPath) {
+    public boolean matches(String requestPath) {
         if (requestPath.isEmpty()) {
             return pattern.isEmpty();
         }

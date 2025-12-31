@@ -1,4 +1,4 @@
-package dev.mockboard.core.common.aop;
+package dev.mockboard.core.config.aop;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ import java.util.Arrays;
 @Slf4j
 @Aspect
 @Component
-public class LoggingAspect {
+public class LoggingAspectConfig {
 
     @Pointcut(
             "within(@org.springframework.stereotype.Repository *)" +

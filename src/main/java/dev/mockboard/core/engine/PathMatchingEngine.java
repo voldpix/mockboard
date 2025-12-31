@@ -1,7 +1,9 @@
-package dev.mockboard.engine;
+package dev.mockboard.core.engine;
 
+import dev.mockboard.core.common.domain.PathPattern;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +11,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-public class PathMatchingEngine {
+public class PathMatchingEngine implements Serializable {
 
     private static final int MAX_WILDCARDS = 3;
     private static final char WILDCARD = '*';
@@ -65,12 +67,12 @@ public class PathMatchingEngine {
         }
 
         for (int wildcardCount = 1; wildcardCount <= MAX_WILDCARDS; wildcardCount++) {
-            List<PathPattern> patterns = wildcardPatterns.get(wildcardCount);
+            var patterns = wildcardPatterns.get(wildcardCount);
             if (patterns == null || patterns.isEmpty()) {
                 continue;
             }
 
-            for (PathPattern pattern : patterns) {
+            for (var pattern : patterns) {
                 if (pattern.matches(requestPath)) {
                     log.trace("Wildcard match found: {} matches {}", requestPath, pattern.getPattern());
                     return Optional.of(pattern.getMockId());
@@ -93,7 +95,7 @@ public class PathMatchingEngine {
             return exactMatches.remove(pattern) != null;
         }
 
-        List<PathPattern> patterns = wildcardPatterns.get(wildcardCount);
+        var patterns = wildcardPatterns.get(wildcardCount);
         if (patterns == null) {
             return false;
         }

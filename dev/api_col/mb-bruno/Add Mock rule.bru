@@ -5,18 +5,19 @@ meta {
 }
 
 post {
-  url: {{SERVER_URL}}/api/boards/PWkzRkRePJYeDxy7MlZ9oo59n/mocks
+  url: {{SERVER_URL}}/api/boards/6955a56b3baa4f77dd96a3b7/mocks
   body: json
   auth: inherit
 }
 
 body:json {
   {
-    "path": "/api/users/*/profile",
+    "method": "POST",
+    "path": "/api/users/*",
     "headers": {
       "X-Header": "my-value"
     },
-    "body": "",
+    "body": "{\n  \"name\": \"Vold\",\n  \"email\": \"vold@mockboard.dev\",\n  \"nested_json\": {\n    \"key1\": \"value1\"\n  },\n  \"nested_array\": [\n    \"arrVal1\", \"arrVal2\", \"arrVal3\"\n  ]\n}",
     "statusCode": 200
   }
 }
