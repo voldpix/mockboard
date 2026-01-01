@@ -15,11 +15,19 @@ import java.util.List;
 @Component
 public class MockRuleCacheStore {
 
+    private static final int MAX_CACHE_SIZE = 10_000;
+    private static final int CACHE_EXPIRATION_AFTER_WRITE_MINUTES = 30;
+
     // apiKey as key
     private final Cache<String, List<MockRuleDto>> mockRules = Caffeine.newBuilder()
-            .maximumSize(10_000)
-            .expireAfterAccess(Duration.ofMinutes(30))
+            .maximumSize(MAX_CACHE_SIZE)
+            .expireAfterAccess(Duration.ofMinutes(CACHE_EXPIRATION_AFTER_WRITE_MINUTES))
             .build();
+
+    public void initMockRulesCache(String apiKey, List<MockRuleDto> mockRuleDtos) {
+        log.debug("init mock rules cache for apiKey={}", apiKey);
+        mockRules.put(apiKey, mockRuleDtos);
+    }
 
     public void addMockRuleToCache(String apiKey, MockRuleDto mockRule) {
         var cachedRules = getMockRules(apiKey);
