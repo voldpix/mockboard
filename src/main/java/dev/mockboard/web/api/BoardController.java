@@ -44,6 +44,13 @@ public class BoardController {
         return new ResponseEntity<>(boardDto, HttpStatus.OK);
     }
 
+    @DeleteMapping("/{boardId")
+    public ResponseEntity<Void> closeBoard(@PathVariable String boardId,
+                                           @RequestHeader(OWNER_TOKEN_HEADER_KEY) String ownerToken) {
+        // todo: impl
+        return ResponseEntity.notFound().build();
+    }
+
     @PostMapping("/{boardId}/mocks")
     public ResponseEntity<IdResponse> addMockRule(@PathVariable String boardId,
                                                   @RequestBody MockRuleDto mockRuleDto,

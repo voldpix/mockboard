@@ -1,36 +1,43 @@
 <script setup>
 import Navbar from '@/components/Navbar.vue'
-import SessionModal from '@/components/SessionModal.vue'
+import SessionOverlay from '@/components/SessionOverlay.vue'
 import RequestSidebar from '@/components/RequestSidebar.vue'
-import { useBoardStore } from '@/stores/boardStore.js'
-import { ref } from 'vue'
+import {useBoardStore} from '@/stores/boardStore.js'
+import {ref} from 'vue'
 import DashboardLayout from '@/components/DashboardLayout.vue'
+import Footer from "@/components/Footer.vue";
 
 const boardStore = useBoardStore()
 const dashboardRef = ref(null)
+const isReady = ref(false)
 
 const onSessionStart = () => {
-  console.log('Starting new session')
+    console.log('Starting new session')
+    isReady.value = true
 }
 
 const onSessionContinue = () => {
-  console.log('Continue continue')
+    console.log('Continue continue')
+    isReady.value = true
 }
 
 const onLogSelected = (log) => {
-  if (dashboardRef.value) {
-    dashboardRef.value.openLogDetails(log)
-  }
+    if (dashboardRef.value) {
+        dashboardRef.value.openLogDetails(log)
+    }
 }
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-100">
-    <SessionModal @session-start="onSessionStart" @session-continue="onSessionContinue" />
+    <SessionOverlay
+        v-if="!isReady"
+        @session-start="onSessionStart"
+        @session-continue="onSessionContinue"/>
 
-    <Navbar />
-
-    <RequestSidebar @view-log="onLogSelected" />
-    <DashboardLayout ref="dashboardRef" />
-  </div>
+    <template v-if="isReady">
+        <Navbar/>
+        <RequestSidebar @view-log="onLogSelected"/>
+        <DashboardLayout ref="dashboardRef"/>
+        <Footer/>
+    </template>
 </template>

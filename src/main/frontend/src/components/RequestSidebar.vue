@@ -1,64 +1,49 @@
 <script setup>
-import { ref } from 'vue'
+import {ref} from 'vue'
 
 const emit = defineEmits(['view-log'])
 
 const logs = ref([
-  { id: 1, method: 'POST', path: '/api/v1/login', status: 200, time: '14:20:01' },
-  { id: 2, method: 'GET', path: '/users/123', status: 404, time: '14:19:55' },
-  { id: 3, method: 'GET', path: '/products', status: 200, time: '14:18:22' },
-  { id: 4, method: 'PUT', path: '/settings', status: 500, time: '14:15:10' },
+    {id: 1, method: 'POST', path: '/api/v1/login', status: 200, matched: true, time: '14:20:01'},
+    {id: 2, method: 'GET', path: '/users/123', status: 404, matched: false, time: '14:19:55'},
+    {id: 3, method: 'GET', path: '/products', status: 200, matched: false, time: '14:18:22'},
+    {id: 4, method: 'PUT', path: '/settings', status: 500, matched: true, time: '14:15:10'},
 ])
 
 const handleLogClick = (log) => {
-  emit('view-log', log)
+    emit('view-log', log)
 }
 </script>
 
 <template>
-  <aside
-    class="w-72 bg-white border-r border-gray-200 flex flex-col fixed top-14 bottom-0 left-0 z-30"
-  >
-    <div class="h-10 border-b border-gray-100 flex items-center px-4 bg-gray-50/50">
-      <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Incoming Requests</h3>
-      <span class="ml-auto text-[10px] bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full"
-        >{{ logs.length }}/20</span
-      >
-    </div>
+    <aside class="sidebar-fixed">
+        <div class="p-3 border-bottom bg-light d-flex justify-content-between align-items-center">
+            <span class="text-uppercase text-muted text-xs fw-bold">Live Requests</span>
 
-    <div class="flex-1 overflow-y-auto p-2 space-y-1">
-      <div
-        v-for="log in logs"
-        :key="log.id"
-        @click="handleLogClick(log)"
-        class="group flex flex-col gap-1 p-3 rounded-lg hover:bg-gray-50 cursor-pointer border border-transparent hover:border-gray-200 transition-all"
-      >
-        <div class="flex items-center gap-2">
-          <span
-            class="text-[10px] font-bold px-1.5 rounded border"
-            :class="{
-              'bg-green-50 text-green-700 border-green-100': log.status >= 200 && log.status < 300,
-              'bg-red-50 text-red-700 border-red-100': log.status >= 400 && log.status < 500,
-              'bg-orange-50 text-orange-700 border-orange-100': log.status >= 500,
-            }"
-          >
-            {{ log.status }}
-          </span>
-          <span class="text-xs font-bold text-gray-700 w-10">{{ log.method }}</span>
-          <span class="text-xs text-gray-600 font-mono truncate" :title="log.path">{{
-            log.path
-          }}</span>
+            <div class="d-flex align-items-center text-success fw-bold text-xs">
+                <span class="spinner-grow spinner-grow-sm me-1" role="status" aria-hidden="true"></span>
+                LISTENING
+            </div>
         </div>
-        <div class="flex items-center justify-end">
-          <span class="text-[10px] text-gray-400 font-mono">{{ log.time }}</span>
-        </div>
-        <div class="h-0.5 w-full bg-gray-200 mx-1"></div>
-      </div>
 
-      <div v-if="logs.length === 0" class="text-center py-10 px-4">
-        <p class="text-xs text-gray-400">No requests received yet.</p>
-        <p class="text-[10px] text-gray-300 mt-1">Hit your Base URL to see logs here.</p>
-      </div>
-    </div>
-  </aside>
+        <div class="list-group list-group-flush">
+            <a v-for="log in logs" href="#" class="list-group-item list-group-item-action log-item matched p-3"
+               onclick="showView('log-detail-1')">
+                <div class="d-flex w-100 justify-content-between mb-1">
+                    <span class="badge bg-success badge-method">{{ log.method }}</span>
+                    <small class="text-muted font-mono">{{ log.time }}</small>
+                </div>
+                <div class="font-mono text-truncate mb-1 fw-bold">{{ log.path }}</div>
+                <div class="d-flex align-items-center gap-2">
+                    <span v-if="log.matched" class="badge bg-light text-success border border-success text-xs">
+                        <i class="bi bi-check-circle-fill me-1"></i>Matched
+                    </span>
+                    <span v-else class="badge bg-light text-warning border border-warning text-xs">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>No Match
+                    </span>
+                    <span class="badge bg-light text-dark border text-xs ms-auto">{{ log.status }}</span>
+                </div>
+            </a>
+        </div>
+    </aside>
 </template>

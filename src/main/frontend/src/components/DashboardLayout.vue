@@ -1,6 +1,8 @@
 <script setup>
-import { ref } from 'vue'
+import {ref} from 'vue'
 import constants from '@/constants.js'
+import DashboardStats from "@/components/DashboardStats.vue";
+import CreateMockEndpoint from "@/components/CreateMockEndpoint.vue";
 
 const mocks = ref([])
 
@@ -8,192 +10,215 @@ const currentView = ref(constants.DASHBOARD_VIEWS.dashboard)
 const selectedLog = ref(null)
 
 const openCreate = () => {
-  currentView.value = constants.DASHBOARD_VIEWS.create_mock
+    currentView.value = constants.DASHBOARD_VIEWS.create_mock
 }
 
 const closePanel = () => {
-  currentView.value = constants.DASHBOARD_VIEWS.dashboard
-  selectedLog.value = null
+    currentView.value = constants.DASHBOARD_VIEWS.dashboard
+    selectedLog.value = null
 }
 
 const openLogDetails = (log) => {
-  selectedLog.value = log
-  currentView.value = constants.DASHBOARD_VIEWS.log_details
+    selectedLog.value = log
+    currentView.value = constants.DASHBOARD_VIEWS.log_details
 }
 
-defineExpose({ openLogDetails })
+defineExpose({openLogDetails})
 </script>
 
 <template>
-  <div class="pl-72 pt-14 min-h-screen bg-gray-50/30">
-    <div v-if="currentView === 'dashboard'" class="p-8 max-w-7xl mx-auto">
-      <div class="flex items-center justify-between mb-8">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900">Your Mocks</h1>
-          <p class="text-sm text-gray-500">Manage your active endpoints.</p>
-        </div>
-        <button
-          @click="openCreate"
-          :disabled="mocks.length >= constants.MAX_MOCKS"
-          class="bg-black text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4v16m8-8H4"
-            ></path>
-          </svg>
-          Create Mock
-        </button>
-      </div>
+    <main class="main-content">
 
-      <div
-        v-if="mocks.length === 0"
-        class="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center bg-gray-50"
-      >
-        <div
-          class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400"
-        >
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-            ></path>
-          </svg>
-        </div>
-        <h3 class="text-gray-900 font-medium mb-1">No mocks defined</h3>
-        <p class="text-gray-500 text-sm mb-6">Create your first endpoint to start testing.</p>
-        <button
-          @click="openCreate"
-          class="text-indigo-600 font-medium text-sm hover:underline cursor-pointer"
-        >
-          + Create new endpoint
-        </button>
-      </div>
-
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-    </div>
-
-    <div
-      v-else-if="currentView === constants.DASHBOARD_VIEWS.create_mock"
-      class="p-8 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-200"
-    >
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div
-          class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50"
-        >
-          <h2 class="font-bold text-gray-800">Create New Mock</h2>
-          <button
-            @click="closePanel"
-            class="text-gray-400 hover:text-gray-600 transition p-1 cursor-pointer"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              ></path>
-            </svg>
-          </button>
-        </div>
-
-        <div class="p-6 space-y-6">
-          <div class="grid grid-cols-4 gap-4">
-            <div class="col-span-1">
-              <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Method</label>
-              <select
-                class="w-full bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
-              >
-                <option>GET</option>
-                <option>POST</option>
-                <option>PUT</option>
-                <option>DELETE</option>
-                <option>PATCH</option>
-              </select>
+        <div v-if="currentView === constants.DASHBOARD_VIEWS.dashboard">
+            <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+                <div class="d-flex align-items-center gap-3">
+                    <h4 class="fw-bold mb-0 text-dark">Dashboard</h4>
+                </div>
+                <div class="d-flex gap-2">
+                    <button
+                        @click="openCreate"
+                        type="button"
+                        class="btn btn-outline-primary px-4 fw-bold">Add New Mock</button>
+                </div>
             </div>
-            <div class="col-span-3">
-              <label class="block text-xs font-semibold text-gray-500 uppercase mb-2"
-                >Endpoint Path</label
-              >
-              <div class="relative">
-                <span class="absolute left-3 top-2 text-gray-400 text-sm">/</span>
-                <input
-                  type="text"
-                  placeholder="api/v1/users"
-                  class="w-full pl-6 bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 font-mono"
-                />
-              </div>
+
+            <DashboardStats />
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 fw-bold">Mock Endpoints</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Method</th>
+                            <th>Path Pattern</th>
+                            <th>Status</th>
+                            <th>Hits</th>
+                            <th>Delay</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td class="ps-4"><span class="badge bg-success">POST</span></td>
+                            <td class="font-mono">/api/v1/login</td>
+                            <td><span
+                                class="badge bg-success-subtle text-success border border-success-subtle">200 OK</span>
+                            </td>
+                            <td class="text-muted">0</td>
+                            <td class="text-muted">0ms</td>
+                            <td>
+                                <button class="btn btn-sm btn-light border"><i class="bi bi-pencil"></i></button>
+                                <button class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4"><span class="badge bg-primary">GET</span></td>
+                            <td class="font-mono">/api/users/*</td>
+                            <td><span
+                                class="badge bg-success-subtle text-success border border-success-subtle">200 OK</span>
+                            </td>
+                            <td class="text-muted">12</td>
+                            <td class="text-muted">500ms</td>
+                            <td>
+                                <button class="btn btn-sm btn-light border"><i class="bi bi-pencil"></i></button>
+                                <button class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4"><span class="badge bg-warning text-dark">PUT</span></td>
+                            <td class="font-mono">/api/settings</td>
+                            <td><span class="badge bg-warning-subtle text-warning border border-warning-subtle">400 Bad Request</span>
+                            </td>
+                            <td class="text-muted">2</td>
+                            <td class="text-muted">0ms</td>
+                            <td>
+                                <button class="btn btn-sm btn-light border"><i class="bi bi-pencil"></i></button>
+                                <button class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-gray-500 uppercase mb-2"
-              >Response Body (JSON)</label
-            >
-            <textarea
-              rows="8"
-              class="w-full bg-gray-900 text-green-400 font-mono text-xs p-4 rounded-md focus:outline-none"
-              placeholder='{ "message": "hello world" }'
-            ></textarea>
-          </div>
-
-          <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
-            <button
-              @click="closePanel"
-              class="px-4 py-2 text-gray-600 text-sm hover:bg-gray-100 rounded-md transition cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 shadow-sm transition cursor-pointer"
-            >
-              Create Mock
-            </button>
-          </div>
         </div>
-      </div>
-    </div>
 
-    <div
-      v-else-if="currentView === constants.DASHBOARD_VIEWS.log_details"
-      class="p-8 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-200"
-    >
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div
-          class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50"
-        >
-          <div class="flex items-center gap-3">
-            <span
-              class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded border border-green-200"
-              >{{ selectedLog?.status }}</span
-            >
-            <h2 class="font-bold text-gray-800 font-mono text-sm">
-              {{ selectedLog?.method }} {{ selectedLog?.path }}
-            </h2>
-          </div>
-          <button
-            @click="closePanel"
-            class="text-gray-400 hover:text-gray-600 transition p-1 cursor-pointer"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              ></path>
-            </svg>
-          </button>
+        <div v-if="currentView === constants.DASHBOARD_VIEWS.create_mock" class="w-100 px-lg-4">
+            <CreateMockEndpoint
+            @close="currentView = constants.DASHBOARD_VIEWS.dashboard"/>
         </div>
-        <div class="p-12 text-center text-gray-400">
-          (Request Headers and Body details would appear here)
+
+        <!-- NOT NEEDED FOR NOW d-none-->
+        <div id="view-log-detail-1" class="view-section d-none">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="mb-1">Request Details</h4>
+                    <span class="text-muted font-mono text-sm">ID: req_8237482374</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-secondary" onclick="showView('dashboard')">Close</button>
+                    <button class="btn btn-primary" onclick="showView('create-mock')">
+                        <i class="bi bi-magic"></i> Create Mock from Request
+                    </button>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-1">
+                            <span class="badge bg-success fs-6 w-100 py-2">POST</span>
+                        </div>
+                        <div class="col-md-7 border-end">
+                            <div class="font-mono fs-5">/api/v1/auth/login</div>
+                        </div>
+                        <div class="col-md-2 border-end text-center">
+                            <div class="text-muted text-xs text-uppercase fw-bold">Status</div>
+                            <div class="text-success fw-bold">200 OK</div>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <div class="text-muted text-xs text-uppercase fw-bold">Duration</div>
+                            <div>45ms</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-light fw-bold">Request</div>
+                        <div class="card-body p-0">
+                            <nav>
+                                <div class="nav nav-tabs nav-justified" id="nav-tab" role="tablist">
+                                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#req-headers">
+                                        Headers
+                                    </button>
+                                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#req-body">Body
+                                    </button>
+                                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#req-params">Params
+                                    </button>
+                                </div>
+                            </nav>
+                            <div class="tab-content p-3">
+                                <div class="tab-pane fade show active" id="req-headers">
+                                    <table class="table table-sm table-borderless font-mono text-sm">
+                                        <tr>
+                                            <td class="text-muted text-end pe-3">Host:</td>
+                                            <td>localhost:8000</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted text-end pe-3">User-Agent:</td>
+                                            <td>PostmanRuntime/7.29.0</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted text-end pe-3">Accept:</td>
+                                            <td>*/*</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted text-end pe-3">Content-Type:</td>
+                                            <td>application/json</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="tab-pane fade" id="req-body">
+                                    <pre class="bg-dark text-success p-3 rounded font-mono m-0"
+                                         style="font-size: 12px;">{
+    "username": "admin",
+    "password": "***"
+}</pre>
+                                </div>
+                                <div class="tab-pane fade" id="req-params">
+                                    <div class="text-muted text-center py-3">No query parameters</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-light fw-bold">Response</div>
+                        <div class="card-body p-0">
+                            <div class="p-3">
+                                <h6 class="text-muted text-xs text-uppercase mb-2">Body Payload</h6>
+                                <pre class="bg-dark text-success p-3 rounded font-mono m-0" style="font-size: 12px;">{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "expires_in": 3600
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  </div>
+    </main>
 </template>
+
+<style scoped>
+
+</style>

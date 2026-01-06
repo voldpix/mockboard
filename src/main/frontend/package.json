@@ -13,17 +13,17 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
+    "@popperjs/core": "^2.11.8",
+    "bootstrap": "^5.3.8",
+    "bootstrap-icons": "^1.13.1",
     "pinia": "^3.0.4",
     "vue": "^3.5.26",
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.18",
     "@vitejs/plugin-vue": "^6.0.3",
     "autoprefixer": "^10.4.23",
-    "postcss": "^8.5.6",
     "prettier": "3.7.4",
-    "tailwindcss": "^4.1.18",
     "vite": "^7.3.0",
     "vite-plugin-vue-devtools": "^8.0.5"
   }
