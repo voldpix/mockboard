@@ -11,7 +11,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
 
 @Data
@@ -34,11 +33,11 @@ public class MockRuleDoc implements Serializable {
 
     private String path;
 
-    private Map<String, String> headers = new HashMap<>();
+    private Map<String, String> headers;
 
     private String body;
 
-    private int statusCode = 200;
+    private int statusCode;
 
     private LocalDateTime createdAt;
 }

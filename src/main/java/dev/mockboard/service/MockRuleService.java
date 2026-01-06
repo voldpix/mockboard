@@ -23,7 +23,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MockRuleService {
 
-    private final BoardService boardService;
     private final MockRuleValidator mockRuleValidator;
     private final MockRuleRepository mockRuleRepository;
     private final MockRuleMapper mockRuleMapper;

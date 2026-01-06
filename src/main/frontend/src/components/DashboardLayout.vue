@@ -4,21 +4,21 @@ import constants from '@/constants.js'
 
 const mocks = ref([])
 
-const currentView = ref('dashboard') // 'dashboard', 'create-mock', 'edit-mock', log-details'
+const currentView = ref(constants.DASHBOARD_VIEWS.dashboard)
 const selectedLog = ref(null)
 
 const openCreate = () => {
-  currentView.value = 'create'
+  currentView.value = constants.DASHBOARD_VIEWS.create_mock
 }
 
 const closePanel = () => {
-  currentView.value = 'dashboard'
+  currentView.value = constants.DASHBOARD_VIEWS.dashboard
   selectedLog.value = null
 }
 
 const openLogDetails = (log) => {
   selectedLog.value = log
-  currentView.value = 'log-details'
+  currentView.value = constants.DASHBOARD_VIEWS.log_details
 }
 
 defineExpose({ openLogDetails })
@@ -78,7 +78,8 @@ defineExpose({ openLogDetails })
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </div>
 
-    <div v-else-if="currentView === 'create'"
+    <div
+      v-else-if="currentView === constants.DASHBOARD_VIEWS.create_mock"
       class="p-8 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-200"
     >
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -158,7 +159,8 @@ defineExpose({ openLogDetails })
       </div>
     </div>
 
-    <div v-else-if="currentView === 'log-details'"
+    <div
+      v-else-if="currentView === constants.DASHBOARD_VIEWS.log_details"
       class="p-8 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-200"
     >
       <div class="bg-white rounded-xl shadow-sm border border-gray-200">
