@@ -4,23 +4,26 @@ import constants from '@/constants.js'
 import DashboardStats from "@/components/DashboardStats.vue";
 import CreateMockEndpoint from "@/components/CreateMockEndpoint.vue";
 
-const mocks = ref([])
+const viewDashboard = constants.DASHBOARD_VIEWS.DASHBOARD
+const viewCreateMock = constants.DASHBOARD_VIEWS.CREATE_MOCK
+const viewEditMock = constants.DASHBOARD_VIEWS.EDIT_MOCK
+const viewLogDetails = constants.DASHBOARD_VIEWS.LOG_DETAILS
 
-const currentView = ref(constants.DASHBOARD_VIEWS.dashboard)
+const currentView = ref(viewDashboard)
 const selectedLog = ref(null)
 
 const openCreate = () => {
-    currentView.value = constants.DASHBOARD_VIEWS.create_mock
+    currentView.value = viewCreateMock
 }
 
 const closePanel = () => {
-    currentView.value = constants.DASHBOARD_VIEWS.dashboard
+    currentView.value = viewDashboard
     selectedLog.value = null
 }
 
 const openLogDetails = (log) => {
     selectedLog.value = log
-    currentView.value = constants.DASHBOARD_VIEWS.log_details
+    currentView.value = viewLogDetails
 }
 
 defineExpose({openLogDetails})
@@ -29,7 +32,7 @@ defineExpose({openLogDetails})
 <template>
     <main class="main-content">
 
-        <div v-if="currentView === constants.DASHBOARD_VIEWS.dashboard">
+        <div v-if="currentView === viewDashboard">
             <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
                 <div class="d-flex align-items-center gap-3">
                     <h4 class="fw-bold mb-0 text-dark">Dashboard</h4>
@@ -107,9 +110,9 @@ defineExpose({openLogDetails})
             </div>
         </div>
 
-        <div v-if="currentView === constants.DASHBOARD_VIEWS.create_mock" class="w-100 px-lg-4">
+        <div v-if="currentView === viewCreateMock" class="w-100 px-lg-4">
             <CreateMockEndpoint
-            @close="currentView = constants.DASHBOARD_VIEWS.dashboard"/>
+            @close="currentView = viewDashboard"/>
         </div>
 
         <!-- NOT NEEDED FOR NOW d-none-->

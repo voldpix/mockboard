@@ -1,69 +1,100 @@
 <script setup>
-import {ref, onMounted} from 'vue'
+import {onMounted, ref} from 'vue'
 import constants from "@/constants.js";
+import boardService from '@/services/boardService.js'
+import {BoardModel} from "@/models/boardModel.js";
+import {useBoardStore} from "@/stores/boardStore.js";
+import {useToast} from '@/useToast.js'
 
 const emit = defineEmits(['session-start', 'session-continue'])
+
+const boardStore = useBoardStore()
+const {success, error} = useToast()
+
 const showModal = ref(false)
 const isReturningUser = ref(false)
+const pendingBoardData = ref(null)
 
-const boardIdKey = constants.BOARD_ID_LS_KEY;
-const ownerTokenKey = constants.OWNER_TOKEN_LS_KEY;
-const reaskKey = constants.SESSION_OVERLAY_REASK_TTL_LS_KEY;
-const reaskTTL = constants.REASK_TTL
+onMounted(async () => {
+    const boardModel = BoardModel.fromLS(constants.BOARD_DATA);
 
-onMounted(() => {
-    const existingSession = localStorage.getItem(boardIdKey)
-    const lastActive = localStorage.getItem(reaskKey)
-    const now = Date.now()
+    if (boardModel && boardModel.id && !boardModel.isExpired()) {
+        try {
+            const result = await boardService.checkExistence(boardModel.id, boardModel.ownerToken);
+            const validatedBoard = new BoardModel(result.data);
 
-    if (existingSession && lastActive && (now - lastActive) < reaskTTL) {
-        updateTimestamp()
-        emit('session-continue')
+            console.log(boardModel);
+            if (!boardModel.shouldShowOverlay()) {
+                boardStore.initializeBoardStore(validatedBoard)
+                emit('session-continue')
+                return;
+            }
+
+            pendingBoardData.value = validatedBoard;
+            isReturningUser.value = true;
+        } catch (err) {
+            console.warn('Session expired on server or invalid data');
+            isReturningUser.value = false
+            boardStore.clearBoardStore()
+        }
     } else {
-        showModal.value = true
-        if (existingSession) isReturningUser.value = true
+        console.log('No local data found or session expired');
+        isReturningUser.value = false
+        boardStore.clearBoardStore()
     }
+
+    showModal.value = true
 })
 
-const updateTimestamp = () => {
-    localStorage.setItem(reaskKey, Date.now().toString())
-}
+const handleStartNew = async () => {
+    try {
+        const result = await boardService.createBoard()
+        const boardModel = new BoardModel(result.data)
+        boardStore.initializeBoardStore(boardModel)
 
-const handleStartNew = () => {
-    localStorage.removeItem(boardIdKey)
-    localStorage.setItem(boardIdKey, 'new-generated-id-' + Date.now())
-    updateTimestamp()
-
-    showModal.value = false
-    emit('session-start')
+        showModal.value = false
+        success('Board created successfully!')
+        emit('session-start')
+    } catch (err) {
+        console.error('Failed to create new board', err);
+        error('Failed to create board. Please try again.'+ err)
+    }
 }
 
 const handleContinue = () => {
-    updateTimestamp()
+    if (pendingBoardData.value) {
+        const model = pendingBoardData.value
+        boardStore.initializeBoardStore(model)
+    }
     showModal.value = false
+    success('Welcome back!')
     emit('session-continue')
 }
 </script>
 
 <template>
-    <div v-if="true" class="session-overlay">
+    <div v-if="showModal" class="session-overlay">
         <div class="card border-0 shadow-lg overflow-hidden w-100"
              style="max-width: 900px; min-height: 450px; border-radius: 0.75rem;">
             <div class="row g-0 h-100">
 
                 <div class="col-md-5 bg-light border-end d-flex flex-column justify-content-between p-4 p-md-5">
                     <div>
-                        <div class="d-flex align-items-center gap-2 mb-4 fw-bold">
-                            <i class="bi bi-box-seam-fill text-primary"></i> MockBoard<span class="text-muted fw-light">.dev</span>
+                        <div class="d-flex align-items-center gap-2 mb-4 fw-bold fs-4">
+                            <i class="bi bi-box-seam-fill text-primary"></i>
+                            <span>
+                                MockBoard<span class="text-muted fw-light">.dev</span>
+                            </span>
                         </div>
 
                         <div class="d-flex flex-column gap-4">
                             <div class="d-flex gap-3">
                                 <div class="text-warning mt-1">
-                                    <svg class="bi" width="20" height="20" fill="none" stroke="currentColor"
-                                         viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    <svg class="bi" fill="none" height="20" stroke="currentColor" viewBox="0 0 24 24"
+                                         width="20">
+                                        <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round"
+                                              stroke-linejoin="round"
+                                              stroke-width="2"></path>
                                     </svg>
                                 </div>
                                 <div>
@@ -78,10 +109,11 @@ const handleContinue = () => {
 
                             <div class="d-flex gap-3">
                                 <div class="text-primary mt-1">
-                                    <svg class="bi" width="20" height="20" fill="none" stroke="currentColor"
-                                         viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    <svg class="bi" fill="none" height="20" stroke="currentColor" viewBox="0 0 24 24"
+                                         width="20">
+                                        <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round"
+                                              stroke-linejoin="round"
+                                              stroke-width="2"></path>
                                     </svg>
                                 </div>
                                 <div>
@@ -96,10 +128,12 @@ const handleContinue = () => {
 
                             <div class="d-flex gap-3">
                                 <div class="text-secondary mt-1">
-                                    <svg class="bi" width="20" height="20" fill="none" stroke="currentColor"
-                                         viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                    <svg class="bi" fill="none" height="20" stroke="currentColor" viewBox="0 0 24 24"
+                                         width="20">
+                                        <path
+                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                            stroke-linecap="round" stroke-linejoin="round"
+                                            stroke-width="2"></path>
                                     </svg>
                                 </div>
                                 <div>
@@ -148,8 +182,8 @@ const handleContinue = () => {
                         </button>
 
                         <p class="text-center text-muted mt-4" style="font-size: 0.75rem;">
-                            By continuing, you agree to the <a href="#"
-                                                               class="text-decoration-underline text-secondary">fair use
+                            By continuing, you agree to the <a class="text-decoration-underline text-secondary"
+                                                               href="#">fair use
                             policy</a>.
                         </p>
                     </div>
@@ -158,9 +192,10 @@ const handleContinue = () => {
                         <div
                             class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-success-subtle text-success border border-success-subtle mb-3"
                             style="font-size: 0.75rem;">
-                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            <svg fill="none" height="12" stroke="currentColor" viewBox="0 0 24 24" width="12">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"></path>
                             </svg>
                             <span class="fw-bold">Previous Session Found</span>
                         </div>
@@ -172,13 +207,14 @@ const handleContinue = () => {
                         </p>
 
                         <div class="d-flex flex-column gap-3">
-                            <button @click="handleContinue"
-                                    class="btn btn-primary w-100 py-3 fw-semibold shadow-sm d-flex align-items-center justify-content-center gap-2">
+                            <button
+                                class="btn btn-primary w-100 py-3 fw-semibold shadow-sm d-flex align-items-center justify-content-center gap-2"
+                                @click="handleContinue">
                                 Continue Session
                             </button>
 
-                            <button @click="isReturningUser = false"
-                                    class="btn btn-outline-secondary w-100 py-3 fw-semibold bg-white text-dark">
+                            <button class="btn btn-outline-secondary w-100 py-3 fw-semibold bg-white text-dark"
+                                    @click="isReturningUser = false">
                                 Discard & Generate New Key
                             </button>
                         </div>

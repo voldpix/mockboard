@@ -5,6 +5,7 @@ import dev.mockboard.core.common.exception.RateLimitExceededException;
 import dev.mockboard.core.common.exception.UnauthorizedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -32,6 +33,12 @@ public class ExceptionHandlerAdvice {
     public ResponseEntity<ExceptionResponse> handleRateLimitExceededException(RateLimitExceededException ex) {
         var exceptionResponse = new ExceptionResponse(ex.getMessage(), LocalDateTime.now());
         return new ResponseEntity<>(exceptionResponse, HttpStatus.TOO_MANY_REQUESTS);
+    }
+
+    @ExceptionHandler({MissingRequestHeaderException.class})
+    public ResponseEntity<ExceptionResponse> handleMissingRequestHeaderException(MissingRequestHeaderException ex) {
+        var exceptionResponse = new ExceptionResponse(ex.getMessage(), LocalDateTime.now());
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler({Exception.class})

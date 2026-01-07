@@ -2,6 +2,9 @@
 import {computed, ref} from 'vue'
 import constants from '@/constants'
 import {useBoardStore} from '@/stores/boardStore.js'
+import {useToast} from "@/useToast.js";
+
+const {success} = useToast()
 
 const boardStore = useBoardStore()
 const copied = ref(false)
@@ -19,8 +22,14 @@ const copyUrl = () => {
 }
 
 const closeBoard = () => {
-    const result = confirm("Are you sure you want to close the board?")
-    console.log(result)
+    const result = confirm("Are you sure you want to delete the board?")
+    if (result) {
+        boardStore.clearBoardStore()
+        success('Board successfully closed. Have a nice day :) ')
+        setTimeout(() => (window.location.reload()), 500)
+
+        // todo: add call to server
+    }
 }
 </script>
 

@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static dev.mockboard.Constants.OWNER_TOKEN_HEADER_KEY;
+
 @RestController
 @RequestMapping("/api/boards")
 @RequiredArgsConstructor
@@ -26,7 +28,12 @@ public class BoardController {
     private final BoardSecurityService boardSecurityService;
     private final BoardCreationRateLimiter boardCreationRateLimiter;
 
-    private static final String OWNER_TOKEN_HEADER_KEY = "X-Owner-Token";
+    @GetMapping("/{boardId}/check")
+    public ResponseEntity<BoardDto> checkBoardExists(@PathVariable String boardId,
+                                                     @RequestHeader(OWNER_TOKEN_HEADER_KEY) String ownerToken) {
+        var boardDto = boardSecurityService.validateOwnership(boardId, ownerToken);
+        return new ResponseEntity<>(boardDto, HttpStatus.OK);
+    }
 
     @PostMapping
     public ResponseEntity<BoardDto> createBoard(HttpServletRequest request) {
@@ -44,7 +51,7 @@ public class BoardController {
         return new ResponseEntity<>(boardDto, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{boardId")
+    @DeleteMapping("/{boardId}")
     public ResponseEntity<Void> closeBoard(@PathVariable String boardId,
                                            @RequestHeader(OWNER_TOKEN_HEADER_KEY) String ownerToken) {
         // todo: impl

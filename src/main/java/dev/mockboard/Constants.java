@@ -9,4 +9,8 @@ public final class Constants {
     // Collections
     public static final String BOARDS = "boards";
     public static final String MOCK_RULES = "mock_rules";
+
+    // headers
+    public static final String OWNER_TOKEN_HEADER_KEY = "X-Owner-Token";
+
 }
