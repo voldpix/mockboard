@@ -4,10 +4,13 @@ import dev.mockboard.cache.config.CaffeineEntityCache;
 import dev.mockboard.common.engine.PathMatchingEngine;
 import org.springframework.stereotype.Component;
 
+import static dev.mockboard.Constants.DEFAULT_CACHE_EXP_AFTER_ACCESS_MIN;
+import static dev.mockboard.Constants.DEFAULT_CACHE_MAX_ENTRIES;
+
 @Component
 public class MatchingEngineCache extends CaffeineEntityCache<PathMatchingEngine> {
 
     public MatchingEngineCache() {
-        super(10_000, 30);
+        super(DEFAULT_CACHE_MAX_ENTRIES, DEFAULT_CACHE_EXP_AFTER_ACCESS_MIN);
     }
 }

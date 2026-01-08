@@ -1,4 +1,4 @@
-package dev.mockboard.core.config;
+package dev.mockboard.config;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;

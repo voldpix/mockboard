@@ -11,33 +11,33 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import static dev.mockboard.Constants.*;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class EventConsumer {
 
-    private static final int MAX_DRAIN_ELEMS = 200;
-
     private final EventQueue eventQueue;
     private final BoardRepository boardRepository;
 
-    @Scheduled(fixedDelay = 5_000)
+    @Scheduled(fixedDelay = CREATED_EVENTS_PROCESS_DELAY)
     public void processCreateEvents() {
         processBoards(EventType.CREATE);
     }
 
-    @Scheduled(fixedDelay = 10_000)
+    @Scheduled(fixedDelay = UPDATED_EVENTS_PROCESS_DELAY)
     public void processUpdateEvents() {
 //        log.debug("processUpdateEvents");
     }
 
-    @Scheduled(fixedDelay = 30_000)
+    @Scheduled(fixedDelay = DELETED_EVENTS_PROCESS_DELAY)
     public void processDeleteEvents() {
         processBoards(EventType.DELETE);
     }
 
     private void processBoards(EventType type) {
-        var events = eventQueue.drain(type, Board.class, MAX_DRAIN_ELEMS);
+        var events = eventQueue.drain(type, Board.class, MAX_EVENT_CONSUMER_DRAIN_ELEMS);
         if (CollectionUtils.isEmpty(events)) {
 //            log.debug("No events found for type {}", type);
             return;

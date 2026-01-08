@@ -1,4 +1,4 @@
-package dev.mockboard.core.config.advice;
+package dev.mockboard.config.advice;
 
 import dev.mockboard.common.exception.NotFoundException;
 import dev.mockboard.common.exception.RateLimitExceededException;

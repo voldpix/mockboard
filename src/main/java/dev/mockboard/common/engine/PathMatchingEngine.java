@@ -1,6 +1,5 @@
 package dev.mockboard.common.engine;
 
-import dev.mockboard.common.domain.PathPattern;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;

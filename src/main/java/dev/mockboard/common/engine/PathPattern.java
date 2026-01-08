@@ -1,4 +1,4 @@
-package dev.mockboard.common.domain;
+package dev.mockboard.common.engine;
 
 import lombok.Getter;
 

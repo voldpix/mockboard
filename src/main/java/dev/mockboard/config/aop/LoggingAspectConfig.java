@@ -1,4 +1,4 @@
-package dev.mockboard.core.config.aop;
+package dev.mockboard.config.aop;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +31,7 @@ public class LoggingAspectConfig {
     @Pointcut(
             "within(dev.mockboard.web..*)" +
                     " || within(dev.mockboard.service..*)" +
-                    " || within(dev.mockboard.storage..*)"
+                    " || within(dev.mockboard.repository..*)"
     )
     public void applicationPackagePointcut() {
         // noop
