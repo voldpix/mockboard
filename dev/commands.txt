@@ -13,12 +13,12 @@ apply: mvn versions:commit
 revert: mvn versions:revert
 
 ---
-Run custom compose file: docker compose -f <compose-file.yml> up -d
-docker compose -f dev/mongo-compose.yml up -d
+Dev Actuator access (dev profile):
+http://127.0.0.1:8000/actuator
 
 ---
-Dev Actuator access:
-http://127.0.0.1:8000/actuator
+H2 console (dev profile):
+http://localhost:8000/h2
 
 ---
 JSON Stringify site for quick test of converting mock "body" json to json string:

@@ -16,14 +16,13 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 
+import static dev.mockboard.Constants.BOARD_API_KEY_LENGTH;
+import static dev.mockboard.Constants.BOARD_OWNER_TOKEN_LENGTH;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class BoardService {
-
-    private static final int BOARD_ID_LENGTH = 16;
-    private static final int API_KEY_LENGTH = 20;
-    private static final int OWNER_TOKEN_LENGTH = 48;
 
     private final EventQueue eventQueue;
     private final BoardCache boardCache;
@@ -32,8 +31,8 @@ public class BoardService {
 
     public BoardDto createBoard() {
         var boardId = IdGenerator.generateId();
-        var apiKey = StringUtils.generate(API_KEY_LENGTH);
-        var ownerToken = StringUtils.generate(OWNER_TOKEN_LENGTH);
+        var apiKey = StringUtils.generate(BOARD_API_KEY_LENGTH);
+        var ownerToken = StringUtils.generate(BOARD_OWNER_TOKEN_LENGTH);
 
         var board = Board.builder()
                 .id(boardId)
@@ -65,5 +64,10 @@ public class BoardService {
         var boardDto = modelMapper.map(boardOpt.get(), BoardDto.class);
         boardCache.put(boardDto.getId(), boardDto);
         return boardDto;
+    }
+
+    public void deleteBoard(BoardDto boardDto) {
+        boardCache.invalidate(boardDto.getId());
+        // todo: also remove all mocks/webhooks
     }
 }

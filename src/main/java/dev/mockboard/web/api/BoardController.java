@@ -38,6 +38,14 @@ public class BoardController {
         return new ResponseEntity<>(boardDto, HttpStatus.OK);
     }
 
+    @DeleteMapping("/{boardId}")
+    public ResponseEntity<Void> deleteBoard(@PathVariable String boardId,
+                                            @RequestHeader(OWNER_TOKEN_HEADER_KEY) String ownerToken) {
+        var boardDto = boardSecurityService.validateOwnershipAndGet(boardId, ownerToken);
+        boardService.deleteBoard(boardDto);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
     @PostMapping("/{boardId}/mocks")
     public ResponseEntity<IdResponse> addMockRule(@PathVariable String boardId,
                                                   @RequestBody MockRuleDto mockRuleDto,

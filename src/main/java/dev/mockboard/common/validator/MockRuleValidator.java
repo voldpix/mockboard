@@ -7,22 +7,12 @@ import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
+
+import static dev.mockboard.Constants.*;
 
 @Component
 @RequiredArgsConstructor
 public class MockRuleValidator {
-
-    private static final Pattern VALID_PATH_PATTERN = Pattern.compile("^/[a-zA-Z0-9/_\\-*{}]+$");
-    private static final Set<String> VALID_HTTP_METHODS = Set.of("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS");
-
-    private static final int MAX_PATH_LENGTH = 250;
-    private static final int MAX_BODY_LENGTH = 5_000;
-    private static final int MAX_WILDCARDS = 3;
-    private static final int MAX_HEADERS_SIZE = 5;
-    private static final int MAX_HEADER_KEY_SIZE = 100;
-    private static final int MAX_HEADER_VALUE_SIZE = 500;
 
     private final ObjectMapper objectMapper;
 
@@ -63,7 +53,6 @@ public class MockRuleValidator {
     }
 
     private void validateBody(String body) {
-        // get, options do not have a body
         if (body == null) {
             return;
         }
@@ -86,7 +75,6 @@ public class MockRuleValidator {
     }
 
     private void validateMethod(String method) {
-        // or make it GET by default
         if (method == null || method.isEmpty()) {
             throw new IllegalArgumentException("HTTP method cannot be empty");
         }
@@ -102,11 +90,11 @@ public class MockRuleValidator {
         try {
             var headersMap = objectMapper.readValue(headersString, new TypeReference<Map<String, String>>() {});
             if (headersMap.size() > MAX_HEADERS_SIZE) {
-                throw new IllegalArgumentException("Too many headers (max " + MAX_HEADERS_SIZE + ")");
+                throw new IllegalArgumentException("Too many headers (max " + MAX_HEADERS_SIZE + " allowed)");
             }
 
             headersMap.forEach((key, value) -> {
-                if (key.length() > MAX_HEADER_KEY_SIZE || value.length() > MAX_HEADER_VALUE_SIZE) {
+                if (key.length() > MAX_HEADER_KEY_LENGTH || value.length() > MAX_HEADER_VALUE_LENGTH) {
                     throw new IllegalArgumentException("Header key or value too long");
                 }
             });
