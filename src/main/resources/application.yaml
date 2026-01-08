@@ -1,5 +1,9 @@
 server:
     port: ${PORT:8000}
+    tomcat:
+        threads:
+            max: 1000
+            min-spare: 10
 
 spring:
     application:
@@ -11,11 +15,19 @@ spring:
     threads:
         virtual:
             enabled: ${VI_THREADS:true}
-    mongodb:
-        uri: ${MONGO_URI:mongodb://localhost:27017/mockboard_db}
-    data:
-        mongodb:
-            auto-index-creation: true
+    datasource:
+        url: 'jdbc:h2:file:../data/mockboard_dev;MODE=MySQL;AUTO_SERVER=TRUE'
+        driver-class-name: org.h2.Driver
+        username: sa
+        password:
+        hikari:
+            maximum-pool-size: 20
+            minimum-idle: 5
+            connection-timeout: 30000
+    sql:
+      init:
+          mode: always
+          schema-locations: classpath:db/schema.sql
 
 mockboard:
     security:

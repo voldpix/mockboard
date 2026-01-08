@@ -1,11 +1,11 @@
 import api from "@/api.js";
 
-const checkBoardExistencePath = (boardId) => `api/boards/${boardId}/check`;
+const getBoardPath = (boardId) => `api/boards/${boardId}`;
 const createBoardPath = `api/boards`;
 
 const BoardService = {
-    checkExistence(boardId, ownerToken) {
-        return api.get(checkBoardExistencePath(boardId), {
+    getBoard(boardId, ownerToken) {
+        return api.get(getBoardPath(boardId), {
             ...api.attachOwnerHeader(ownerToken),
         });
     },

@@ -7,7 +7,7 @@ export const useBoardStore = defineStore("boardStore", {
     }),
     actions: {
         initializeBoardStore(boardModel) {
-            console.log(`Initializing boardStore for ${boardModel.id}`);
+            console.log(`Initializing boardStore for ${boardModel.boardId}`);
             this.board = boardModel;
             this.board.updateLastInteraction()
         },

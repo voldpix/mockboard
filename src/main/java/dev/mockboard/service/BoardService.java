@@ -1,58 +1,68 @@
 package dev.mockboard.service;
 
-import dev.mockboard.core.common.domain.dto.BoardDto;
-import dev.mockboard.core.common.exception.NotFoundException;
-import dev.mockboard.core.common.mapper.BoardMapper;
-import dev.mockboard.core.utils.StringUtils;
-import dev.mockboard.storage.cache.BoardCacheStore;
-import dev.mockboard.storage.doc.BoardDoc;
-import dev.mockboard.storage.doc.repo.BoardRepository;
+import dev.mockboard.cache.BoardCache;
+import dev.mockboard.common.domain.dto.BoardDto;
+import dev.mockboard.common.exception.NotFoundException;
+import dev.mockboard.common.utils.StringUtils;
+import dev.mockboard.event.config.DomainEvent;
+import dev.mockboard.event.config.EventQueue;
+import dev.mockboard.repository.BoardRepository;
+import dev.mockboard.repository.model.Board;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class BoardService {
 
-    private static final int API_KEY_LENGTH = 16;
-    private static final int OWNER_TOKEN_LENGTH = 32;
+    private static final int BOARD_ID_LENGTH = 16;
+    private static final int API_KEY_LENGTH = 20;
+    private static final int OWNER_TOKEN_LENGTH = 48;
 
+    private final EventQueue eventQueue;
+    private final BoardCache boardCache;
+    private final ModelMapper modelMapper;
     private final BoardRepository boardRepository;
-    private final BoardCacheStore boardCacheStore;
-    private final BoardMapper boardMapper;
 
     public BoardDto createBoard() {
-        var boardDoc = new BoardDoc();
-        boardDoc.setApiKey(StringUtils.generate(API_KEY_LENGTH));
-        boardDoc.setOwnerToken(StringUtils.generate(OWNER_TOKEN_LENGTH));
-        boardDoc.setCreatedAt(LocalDateTime.now());
-        var stored = boardRepository.save(boardDoc);
-        boardCacheStore.initBoardCache(stored.getId(), boardMapper.mapBoardDocToBoardDto(stored));
-        return boardMapper.mapBoardDocToBoardDto(stored);
+        var boardId = StringUtils.generate(BOARD_ID_LENGTH);
+        var apiKey = StringUtils.generate(API_KEY_LENGTH);
+        var ownerToken = StringUtils.generate(OWNER_TOKEN_LENGTH);
+
+        var board = Board.builder()
+                .boardId(boardId)
+                .apiKey(apiKey)
+                .ownerToken(ownerToken)
+                .timestamp(Instant.now())
+                .build();
+        var boardDto = modelMapper.map(board, BoardDto.class);
+        boardCache.put(board.getBoardId(), boardDto);
+
+        eventQueue.publish(DomainEvent.create(board, board.getBoardId(), Board.class));
+        log.info("Created board: {}", board.getBoardId());
+        return boardDto;
     }
 
     public BoardDto getBoardDto(String boardId) {
-        var cachedBoard = boardCacheStore.getBoardCache(boardId);
-        if (cachedBoard == null) {
-            // fallback to db
-            log.debug("Board {} not found in cache, fallback.", boardId);
-            var boardDoc = getBoardDoc(boardId);
-            return boardMapper.mapBoardDocToBoardDto(boardDoc);
+        var cachedOpt = boardCache.get(boardId);
+        if (cachedOpt.isPresent()) {
+            log.debug("Board cache hit: {}", boardId);
+            return cachedOpt.get();
         }
 
-        return cachedBoard;
-    }
-
-    private BoardDoc getBoardDoc(String boardId) {
-        var boardDocOpt = boardRepository.findById(boardId);
-        if (boardDocOpt.isEmpty()) {
+        log.debug("Board cache miss: {}, fallback to DB", boardId);
+        var boardOpt = boardRepository.findByBoardId(boardId);
+        if (boardOpt.isEmpty()) {
             throw new NotFoundException("Board not found by id: " + boardId);
         }
 
-        return boardDocOpt.get();
+        var boardDto = modelMapper.map(boardOpt.get(), BoardDto.class);
+        boardCache.put(boardDto.getBoardId(), boardDto);
+        return boardDto;
     }
 }

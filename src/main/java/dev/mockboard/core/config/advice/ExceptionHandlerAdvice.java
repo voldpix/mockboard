@@ -1,8 +1,8 @@
 package dev.mockboard.core.config.advice;
 
-import dev.mockboard.core.common.exception.NotFoundException;
-import dev.mockboard.core.common.exception.RateLimitExceededException;
-import dev.mockboard.core.common.exception.UnauthorizedException;
+import dev.mockboard.common.exception.NotFoundException;
+import dev.mockboard.common.exception.RateLimitExceededException;
+import dev.mockboard.common.exception.UnauthorizedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingRequestHeaderException;

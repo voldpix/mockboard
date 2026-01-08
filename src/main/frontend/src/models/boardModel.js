@@ -4,9 +4,10 @@ export class BoardModel {
     constructor(data = {}) {
         // server data
         this.id = data.id || null
+        this.boardId = data.boardId || null
         this.ownerToken = data.ownerToken || null
         this.apiKey = data.apiKey || null
-        this.createdAt = data.createdAt ? new Date(data.createdAt).getTime() : null
+        this.timestamp = data.timestamp ? new Date(data.timestamp).getTime() : null
         // local properties
         this.lastInteraction = data.lastInteraction || null
     }
@@ -14,9 +15,10 @@ export class BoardModel {
     toJSON() {
         return {
             id: this.id,
+            boardId: this.boardId,
             ownerToken: this.ownerToken,
             apiKey: this.apiKey,
-            createdAt: this.createdAt,
+            timestamp: this.timestamp,
             lastInteraction: this.lastInteraction,
         }
     }
@@ -40,9 +42,9 @@ export class BoardModel {
     }
 
     isExpired() {
-        if (!this.createdAt || this.createdAt === 0) return true;
+        if (!this.timestamp || this.timestamp === 0) return true;
 
-        const created = new Date(this.createdAt);
+        const created = new Date(this.timestamp);
         if (isNaN(created.getTime())) return true;
 
         const now = new Date();
@@ -66,7 +68,7 @@ export class BoardModel {
         try {
             const data = JSON.parse(raw)
             const board = new BoardModel(data)
-            if (!board.id || !board.ownerToken || !board.apiKey) {
+            if (!board.boardId || !board.ownerToken || !board.apiKey) {
                 console.warn('Invalid board data in localStorage')
                 return null
             }

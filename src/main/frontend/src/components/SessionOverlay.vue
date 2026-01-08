@@ -18,9 +18,9 @@ const pendingBoardData = ref(null)
 onMounted(async () => {
     const boardModel = BoardModel.fromLS(constants.BOARD_DATA);
 
-    if (boardModel && boardModel.id && !boardModel.isExpired()) {
+    if (boardModel && boardModel.boardId && !boardModel.isExpired()) {
         try {
-            const result = await boardService.checkExistence(boardModel.id, boardModel.ownerToken);
+            const result = await boardService.getBoard(boardModel.boardId, boardModel.ownerToken);
             const validatedBoard = new BoardModel(result.data);
 
             console.log(boardModel);
