@@ -1,37 +1,91 @@
 package dev.mockboard.service;
 
+import dev.mockboard.cache.MatchingEngineCache;
+import dev.mockboard.cache.MockRuleCache;
+import dev.mockboard.common.domain.dto.BoardDto;
+import dev.mockboard.common.domain.dto.MockRuleDto;
+import dev.mockboard.common.domain.response.IdResponse;
+import dev.mockboard.common.utils.IdGenerator;
+import dev.mockboard.common.utils.JsonUtils;
+import dev.mockboard.common.validator.MockRuleValidator;
+import dev.mockboard.event.config.DomainEvent;
+import dev.mockboard.event.config.EventQueue;
+import dev.mockboard.repository.MockRuleRepository;
+import dev.mockboard.repository.model.MockRule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
-//@Service
+@Service
 @RequiredArgsConstructor
 public class MockRuleService {
 
-//    private final MockRuleValidator mockRuleValidator;
-//    private final MockRuleRepository mockRuleRepository;
-//    private final MockRuleMapper mockRuleMapper;
-//
-//    private final MockRuleCacheStore mockRuleCacheStore;
-//    private final MockExecutionCacheStore mockExecutionCacheStore;
+    private final EventQueue eventQueue;
+    private final ModelMapper modelMapper;
+    private final MockRuleValidator mockRuleValidator;
+    private final MockRuleRepository mockRuleRepository;
+    private final MockRuleCache mockRuleCache;
+    private final MatchingEngineCache matchingEngineCache;
 
-//    public IdResponse addMockRule(BoardDto boardDto, MockRuleDto mockRuleDto) {
-//        log.debug("addMockRule for boardId={}", boardDto.getId());
-//        mockRuleValidator.validateMockRule(mockRuleDto);
+    public IdResponse createMockRule(BoardDto boardDto, MockRuleDto mockRuleDto) {
+        log.debug("creating mock rule for boardId={}", boardDto.getId());
+        mockRuleValidator.validateMockRule(mockRuleDto);
+
+        mockRuleDto.setId(IdGenerator.generateId());
+        mockRuleDto.setBoardId(boardDto.getId());
+        mockRuleDto.setApiKey(boardDto.getApiKey());
+        mockRuleDto.setHeaders(JsonUtils.minify(mockRuleDto.getHeaders()));
+        mockRuleDto.setBody(JsonUtils.minify(mockRuleDto.getBody()));
+        mockRuleDto.setTimestamp(Instant.now());
+
+        var mockRule = modelMapper.map(mockRuleDto, MockRule.class);
+        mockRuleCache.addMockRule(boardDto.getApiKey(), mockRuleDto);
+
+        eventQueue.publish(DomainEvent.create(mockRule, MockRule.class));
+        log.info("Mock rule added bo board: {}", boardDto.getId());
+        return new IdResponse(mockRule.getId());
+    }
+
+    public List<MockRuleDto> getMockRules(BoardDto boardDto) {
+        var cachedMockRules = mockRuleCache.getMockRules(boardDto.getApiKey());
+        if (CollectionUtils.isEmpty(cachedMockRules)) {
+            var persistedMockRules = mockRuleRepository.findByBoardId(boardDto.getId());
+            if (CollectionUtils.isEmpty(persistedMockRules)) {
+                return Collections.emptyList();
+            }
+
+            var dtos = persistedMockRules.stream()
+                    .map(mockRule -> modelMapper.map(mockRule, MockRuleDto.class))
+                    .toList();
+            mockRuleCache.put(boardDto.getApiKey(), dtos);
+            return dtos;
+        }
+        return cachedMockRules;
+    }
+
+    //    public List<MockRuleDto> getMockRuleDtos(BoardDto boardDto) {
+//        var cachedMockRules = mockRuleCacheStore.getMockRules(boardDto.getApiKey());
+//        if (CollectionUtils.isEmpty(cachedMockRules)) {
+//            var persistedMockRules = getMockRuleDocs(boardDto.getId());
+//            if (CollectionUtils.isEmpty(persistedMockRules)) {
+//                return List.of();
+//            }
 //
-//        // todo: validate mock exists by path
-//
-//        mockRuleDto.setId(null);
-//        mockRuleDto.setBoardId(boardDto.getId());
-//        mockRuleDto.setApiKey(boardDto.getApiKey());
-//        mockRuleDto.setCreatedAt(LocalDateTime.now());
-//        var mockRuleDoc = mockRuleMapper.mapMockRuleDtoToMockRuleDoc(mockRuleDto);
-//        mockRuleRepository.save(mockRuleDoc);
-//
-//        evictMockCache(boardDto.getApiKey());
-//        return new IdResponse(mockRuleDoc.getId());
+//            var mockRuleDtos = persistedMockRules.stream()
+//                    .map(mockRuleMapper::mapMockRuleDocToMockRuleDto)
+//                    .toList();
+//            mockRuleCacheStore.initMockRulesCache(boardDto.getApiKey(), mockRuleDtos);
+//            return mockRuleDtos;
+//        }
+//        return cachedMockRules;
 //    }
-//
 //    public IdResponse updateMockRule(BoardDto boardDto, String mockRuleId, MockRuleDto mockRuleDto) {
 //        log.debug("updateMockRule boardId={} mockRuleId={}", boardDto.getId(), mockRuleId);
 //        mockRuleValidator.validateMockRule(mockRuleDto);
@@ -49,22 +103,7 @@ public class MockRuleService {
 //        return new IdResponse(mockRule.getId());
 //    }
 //
-//    public List<MockRuleDto> getMockRuleDtos(BoardDto boardDto) {
-//        var cachedMockRules = mockRuleCacheStore.getMockRules(boardDto.getApiKey());
-//        if (CollectionUtils.isEmpty(cachedMockRules)) {
-//            var persistedMockRules = getMockRuleDocs(boardDto.getId());
-//            if (CollectionUtils.isEmpty(persistedMockRules)) {
-//                return List.of();
-//            }
-//
-//            var mockRuleDtos = persistedMockRules.stream()
-//                    .map(mockRuleMapper::mapMockRuleDocToMockRuleDto)
-//                    .toList();
-//            mockRuleCacheStore.initMockRulesCache(boardDto.getApiKey(), mockRuleDtos);
-//            return mockRuleDtos;
-//        }
-//        return cachedMockRules;
-//    }
+
 //
 //    public List<MockRuleDto> getMockRuleDtos(String apiKey) {
 //        var cachedMockRules = mockRuleCacheStore.getMockRules(apiKey);

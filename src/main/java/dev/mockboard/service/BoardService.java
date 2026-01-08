@@ -3,6 +3,7 @@ package dev.mockboard.service;
 import dev.mockboard.cache.BoardCache;
 import dev.mockboard.common.domain.dto.BoardDto;
 import dev.mockboard.common.exception.NotFoundException;
+import dev.mockboard.common.utils.IdGenerator;
 import dev.mockboard.common.utils.StringUtils;
 import dev.mockboard.event.config.DomainEvent;
 import dev.mockboard.event.config.EventQueue;
@@ -30,21 +31,21 @@ public class BoardService {
     private final BoardRepository boardRepository;
 
     public BoardDto createBoard() {
-        var boardId = StringUtils.generate(BOARD_ID_LENGTH);
+        var boardId = IdGenerator.generateId();
         var apiKey = StringUtils.generate(API_KEY_LENGTH);
         var ownerToken = StringUtils.generate(OWNER_TOKEN_LENGTH);
 
         var board = Board.builder()
-                .boardId(boardId)
+                .id(boardId)
                 .apiKey(apiKey)
                 .ownerToken(ownerToken)
                 .timestamp(Instant.now())
                 .build();
         var boardDto = modelMapper.map(board, BoardDto.class);
-        boardCache.put(board.getBoardId(), boardDto);
+        boardCache.put(board.getId(), boardDto);
 
-        eventQueue.publish(DomainEvent.create(board, board.getBoardId(), Board.class));
-        log.info("Created board: {}", board.getBoardId());
+        eventQueue.publish(DomainEvent.create(board, Board.class));
+        log.info("Created board: {}", board.getId());
         return boardDto;
     }
 
@@ -56,13 +57,13 @@ public class BoardService {
         }
 
         log.debug("Board cache miss: {}, fallback to DB", boardId);
-        var boardOpt = boardRepository.findByBoardId(boardId);
+        var boardOpt = boardRepository.findById(boardId);
         if (boardOpt.isEmpty()) {
             throw new NotFoundException("Board not found by id: " + boardId);
         }
 
         var boardDto = modelMapper.map(boardOpt.get(), BoardDto.class);
-        boardCache.put(boardDto.getBoardId(), boardDto);
+        boardCache.put(boardDto.getId(), boardDto);
         return boardDto;
     }
 }

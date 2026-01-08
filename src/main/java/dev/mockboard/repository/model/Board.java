@@ -14,9 +14,7 @@ import java.time.Instant;
 @AllArgsConstructor
 public class Board implements Serializable {
 
-    private Long id;
-
-    private String boardId;
+    private String id;
 
     private String apiKey;
 

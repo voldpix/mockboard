@@ -5,22 +5,22 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-import java.util.Map;
+import java.io.Serializable;
+import java.time.Instant;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MockRuleDto {
+public class MockRuleDto implements Serializable {
 
     private String id;
     private String boardId;
     private String apiKey;
     private String method;
     private String path;
-    private Map<String, String> headers;
+    private String headers;
     private String body;
     private int statusCode;
-    private LocalDateTime createdAt;
+    private Instant timestamp;
 }

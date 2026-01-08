@@ -1,6 +1,5 @@
 package dev.mockboard.common.domain.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,9 +14,7 @@ import java.time.Instant;
 @AllArgsConstructor
 public class BoardDto implements Serializable {
 
-    @JsonIgnore
-    private Long id;
-    private String boardId;
+    private String id;
     private String apiKey;
     private String ownerToken;
     private Instant timestamp;

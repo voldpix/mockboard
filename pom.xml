@@ -27,6 +27,7 @@
         <commons-text.version>1.15.0</commons-text.version>
         <datafaker.version>2.5.3</datafaker.version>
         <modelmapper.version>3.2.6</modelmapper.version>
+        <ulid.version>8.3.0</ulid.version>
     </properties>
 
     <dependencies>
@@ -88,6 +89,11 @@
             <groupId>org.modelmapper</groupId>
             <artifactId>modelmapper</artifactId>
             <version>${modelmapper.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>de.huxhorn.sulky</groupId>
+            <artifactId>de.huxhorn.sulky.ulid</artifactId>
+            <version>${ulid.version}</version>
         </dependency>
 
         <!-- TEST -->

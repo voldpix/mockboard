@@ -3,6 +3,7 @@ package dev.mockboard.common.validator;
 import dev.mockboard.common.domain.dto.MockRuleDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
@@ -16,10 +17,10 @@ public class MockRuleValidator {
     private static final Pattern VALID_PATH_PATTERN = Pattern.compile("^/[a-zA-Z0-9/_\\-*{}]+$");
     private static final Set<String> VALID_HTTP_METHODS = Set.of("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS");
 
-    private static final int MAX_PATH_LENGTH = 256;
+    private static final int MAX_PATH_LENGTH = 250;
     private static final int MAX_BODY_LENGTH = 5_000;
     private static final int MAX_WILDCARDS = 3;
-    private static final int MAX_HEADERS_SIZE = 20;
+    private static final int MAX_HEADERS_SIZE = 5;
     private static final int MAX_HEADER_KEY_SIZE = 100;
     private static final int MAX_HEADER_VALUE_SIZE = 500;
 
@@ -95,17 +96,22 @@ public class MockRuleValidator {
         }
     }
 
-    private void validateHeaders(Map<String, String> headers) {
-        if (headers == null) return;
+    private void validateHeaders(String headersString) {
+        if (headersString == null) return;
 
-        if (headers.size() > MAX_HEADERS_SIZE) {
-            throw new IllegalArgumentException("Too many headers (max " + MAX_HEADERS_SIZE + ")");
-        }
-
-        headers.forEach((key, value) -> {
-            if (key.length() > MAX_HEADER_KEY_SIZE || value.length() > MAX_HEADER_VALUE_SIZE) {
-                throw new IllegalArgumentException("Header key or value too long");
+        try {
+            var headersMap = objectMapper.readValue(headersString, new TypeReference<Map<String, String>>() {});
+            if (headersMap.size() > MAX_HEADERS_SIZE) {
+                throw new IllegalArgumentException("Too many headers (max " + MAX_HEADERS_SIZE + ")");
             }
-        });
+
+            headersMap.forEach((key, value) -> {
+                if (key.length() > MAX_HEADER_KEY_SIZE || value.length() > MAX_HEADER_VALUE_SIZE) {
+                    throw new IllegalArgumentException("Header key or value too long");
+                }
+            });
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Headers must be valid JSON string");
+        }
     }
 }

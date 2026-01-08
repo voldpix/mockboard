@@ -24,8 +24,8 @@ public class DomainEvent<T> implements Serializable {
         this.timestamp = Instant.now();
     }
 
-    public static <T> DomainEvent<T> create(T entity, String entityId, Class<T> entityClass) {
-        return new DomainEvent<>(EventType.CREATE, entity, entityId, entityClass);
+    public static <T> DomainEvent<T> create(T entity, Class<T> entityClass) {
+        return new DomainEvent<>(EventType.CREATE, entity, null, entityClass);
     }
 
     public static <T> DomainEvent<T> update(T entity, String entityId, Class<T> entityClass) {

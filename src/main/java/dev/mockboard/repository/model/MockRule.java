@@ -14,21 +14,13 @@ import java.time.Instant;
 @AllArgsConstructor
 public class MockRule implements Serializable {
 
-    private Long id;
-
+    private String id;
     private String boardId;
-
     private String apiKey;
-
     private String method;
-
     private String path;
-
     private String headers;
-
     private String body;
-
     private int statusCode;
-
     private Instant timestamp;
 }
