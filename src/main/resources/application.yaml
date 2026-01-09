@@ -1,5 +1,9 @@
 server:
     port: ${PORT:8000}
+    tomcat:
+        threads:
+            max: 1000
+            min-spare: 10
 
 spring:
     application:
@@ -7,22 +11,20 @@ spring:
     main:
         banner-mode: off
     profiles:
-        active: ${ACTIVE_ENV:dev}
+        active: ${ACTIVE_PROFILE:dev}
     threads:
         virtual:
             enabled: ${VI_THREADS:true}
-    mongodb:
-        uri: ${MONGO_URI:mongodb://localhost:27017/mockboard_db}
-    data:
-        mongodb:
-            auto-index-creation: true
-
-mockboard:
-    security:
-        owner-token-header-key: ${OWNER_TOKEN_HEADER:'X-Owner-Token'}
-    cache:
-        max-entries: ${CACHE_MAX_ENTRIES:10000}
-        exp-after-access-minutes: ${CACHE_EXP_AFTER_ACCESS_MIN:30}
-        rate-limiter:
-            board-creation-exp-after-access-minutes: ${BOARD_CREATION_CACHE_EXP_AFTER_MIN:60}
-            mock-execution-exp-after-access-minutes: ${MOCK_EXECUTION_CACHE_EXP_AFTER_MIN:1}
+    datasource:
+        url: ${DB_PATH:jdbc:h2:file:../data/mockboard_dev;MODE=MySQL;AUTO_SERVER=TRUE}
+        driver-class-name: org.h2.Driver
+        username: ${DB_USERNAME:sa}
+        password: ${DB_PASSWORD:}
+        hikari:
+            maximum-pool-size: 20
+            minimum-idle: 5
+            connection-timeout: 30000
+    sql:
+      init:
+          mode: always
+          schema-locations: classpath:db/schema.sql

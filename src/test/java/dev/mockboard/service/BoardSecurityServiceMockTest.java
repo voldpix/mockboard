@@ -1,7 +1,7 @@
 package dev.mockboard.service;
 
-import dev.mockboard.core.common.domain.dto.BoardDto;
-import dev.mockboard.core.common.exception.UnauthorizedException;
+import dev.mockboard.common.domain.dto.BoardDto;
+import dev.mockboard.common.exception.UnauthorizedException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,8 +15,10 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class BoardSecurityServiceMockTest {
 
-    @Mock private BoardService boardService;
-    @InjectMocks private BoardSecurityService boardSecurityService;
+    @Mock
+    private BoardService boardService;
+    @InjectMocks
+    private BoardSecurityService boardSecurityService;
 
     @Test
     void validateOwnership_Success() {
@@ -29,7 +31,7 @@ class BoardSecurityServiceMockTest {
 
         when(boardService.getBoardDto(boardId)).thenReturn(boardDto);
 
-        var result = boardSecurityService.validateOwnership(boardId, validToken);
+        var result = boardSecurityService.validateOwnershipAndGet(boardId, validToken);
         assertThat(result).isEqualTo(boardDto);
     }
 
@@ -45,7 +47,7 @@ class BoardSecurityServiceMockTest {
                 .build();
 
         when(boardService.getBoardDto(boardId)).thenReturn(boardDto);
-        assertThatThrownBy(() -> boardSecurityService.validateOwnership(boardId, hackingAttemptToken))
+        assertThatThrownBy(() -> boardSecurityService.validateOwnershipAndGet(boardId, hackingAttemptToken))
                 .isInstanceOf(UnauthorizedException.class)
                 .hasMessage("Invalid owner token");
     }

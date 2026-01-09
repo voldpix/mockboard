@@ -1,13 +1,11 @@
 package dev.mockboard.web.api;
 
-import dev.mockboard.core.common.domain.dto.BoardDto;
-import dev.mockboard.core.common.domain.dto.MockRuleDto;
-import dev.mockboard.core.common.domain.response.IdResponse;
-import dev.mockboard.core.utils.RequestUtils;
+import dev.mockboard.common.domain.dto.BoardDto;
+import dev.mockboard.common.domain.dto.MockRuleDto;
+import dev.mockboard.common.domain.response.IdResponse;
 import dev.mockboard.service.BoardSecurityService;
 import dev.mockboard.service.BoardService;
 import dev.mockboard.service.MockRuleService;
-import dev.mockboard.storage.cache.ratelimiter.BoardCreationRateLimiter;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,20 +24,9 @@ public class BoardController {
     private final BoardService boardService;
     private final MockRuleService mockRuleService;
     private final BoardSecurityService boardSecurityService;
-    private final BoardCreationRateLimiter boardCreationRateLimiter;
-
-    @GetMapping("/{boardId}/check")
-    public ResponseEntity<BoardDto> checkBoardExists(@PathVariable String boardId,
-                                                     @RequestHeader(OWNER_TOKEN_HEADER_KEY) String ownerToken) {
-        var boardDto = boardSecurityService.validateOwnership(boardId, ownerToken);
-        return new ResponseEntity<>(boardDto, HttpStatus.OK);
-    }
 
     @PostMapping
-    public ResponseEntity<BoardDto> createBoard(HttpServletRequest request) {
-        var ipAddress = RequestUtils.getClientIp(request);
-        boardCreationRateLimiter.checkLimit(ipAddress);
-
+    public ResponseEntity<BoardDto> createBoard(HttpServletRequest _request) {
         var boardDto = boardService.createBoard();
         return new ResponseEntity<>(boardDto, HttpStatus.CREATED);
     }
@@ -47,50 +34,32 @@ public class BoardController {
     @GetMapping("/{boardId}")
     public ResponseEntity<BoardDto> getBoard(@PathVariable String boardId,
                                              @RequestHeader(OWNER_TOKEN_HEADER_KEY) String ownerToken) {
-        var boardDto = boardSecurityService.validateOwnership(boardId, ownerToken);
+        var boardDto = boardSecurityService.validateOwnershipAndGet(boardId, ownerToken);
         return new ResponseEntity<>(boardDto, HttpStatus.OK);
     }
 
     @DeleteMapping("/{boardId}")
-    public ResponseEntity<Void> closeBoard(@PathVariable String boardId,
-                                           @RequestHeader(OWNER_TOKEN_HEADER_KEY) String ownerToken) {
-        // todo: impl
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<Void> deleteBoard(@PathVariable String boardId,
+                                            @RequestHeader(OWNER_TOKEN_HEADER_KEY) String ownerToken) {
+        var boardDto = boardSecurityService.validateOwnershipAndGet(boardId, ownerToken);
+        boardService.deleteBoard(boardDto);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PostMapping("/{boardId}/mocks")
     public ResponseEntity<IdResponse> addMockRule(@PathVariable String boardId,
                                                   @RequestBody MockRuleDto mockRuleDto,
                                                   @RequestHeader(OWNER_TOKEN_HEADER_KEY) String ownerToken) {
-        var boardDto = boardSecurityService.validateOwnership(boardId, ownerToken);
-        var mockId = mockRuleService.addMockRule(boardDto, mockRuleDto);
+        var boardDto = boardSecurityService.validateOwnershipAndGet(boardId, ownerToken);
+        var mockId = mockRuleService.createMockRule(boardDto, mockRuleDto);
         return new ResponseEntity<>(mockId, HttpStatus.CREATED);
     }
 
     @GetMapping("/{boardId}/mocks")
     public ResponseEntity<List<MockRuleDto>> getMockRules(@PathVariable String boardId,
                                                           @RequestHeader(OWNER_TOKEN_HEADER_KEY) String ownerToken) {
-        var boardDto = boardSecurityService.validateOwnership(boardId, ownerToken);
-        var mockRules = mockRuleService.getMockRuleDtos(boardDto);
+        var boardDto = boardSecurityService.validateOwnershipAndGet(boardId, ownerToken);
+        var mockRules = mockRuleService.getMockRules(boardDto);
         return new ResponseEntity<>(mockRules, HttpStatus.OK);
-    }
-
-    @PutMapping("/{boardId}/mocks/{mockId}")
-    public ResponseEntity<IdResponse> updateMockRule(@PathVariable String boardId,
-                                                     @PathVariable String mockId,
-                                                     @RequestBody MockRuleDto mockRuleDto,
-                                                     @RequestHeader(OWNER_TOKEN_HEADER_KEY) String ownerToken) {
-        var boardDto = boardSecurityService.validateOwnership(boardId, ownerToken);
-        var response = mockRuleService.updateMockRule(boardDto, mockId, mockRuleDto);
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    @DeleteMapping("/{boardId}/mocks/{mockId}")
-    public ResponseEntity<Void> deleteMockRule(@PathVariable String boardId,
-                                               @PathVariable String mockId,
-                                               @RequestHeader(OWNER_TOKEN_HEADER_KEY) String ownerToken) {
-        var boardDto = boardSecurityService.validateOwnership(boardId, ownerToken);
-        mockRuleService.deleteMockRule(boardDto, mockId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

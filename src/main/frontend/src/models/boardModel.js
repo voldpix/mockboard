@@ -6,7 +6,7 @@ export class BoardModel {
         this.id = data.id || null
         this.ownerToken = data.ownerToken || null
         this.apiKey = data.apiKey || null
-        this.createdAt = data.createdAt ? new Date(data.createdAt).getTime() : null
+        this.timestamp = data.timestamp ? new Date(data.timestamp).getTime() : null
         // local properties
         this.lastInteraction = data.lastInteraction || null
     }
@@ -16,7 +16,7 @@ export class BoardModel {
             id: this.id,
             ownerToken: this.ownerToken,
             apiKey: this.apiKey,
-            createdAt: this.createdAt,
+            timestamp: this.timestamp,
             lastInteraction: this.lastInteraction,
         }
     }
@@ -40,9 +40,9 @@ export class BoardModel {
     }
 
     isExpired() {
-        if (!this.createdAt || this.createdAt === 0) return true;
+        if (!this.timestamp || this.timestamp === 0) return true;
 
-        const created = new Date(this.createdAt);
+        const created = new Date(this.timestamp);
         if (isNaN(created.getTime())) return true;
 
         const now = new Date();

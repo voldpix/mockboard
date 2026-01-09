@@ -13,28 +13,17 @@ apply: mvn versions:commit
 revert: mvn versions:revert
 
 ---
-Run custom compose file: docker compose -f <compose-file.yml> up -d
-docker compose -f dev/mongo-compose.yml up -d
+Dev Actuator access (dev profile):
+http://127.0.0.1:8000/actuator
 
 ---
-Dev Actuator access:
-http://127.0.0.1:8000/actuator
+H2 console (dev profile):
+http://localhost:8000/h2
 
 ---
 JSON Stringify site for quick test of converting mock "body" json to json string:
 https://jsonformatter.org/json-stringify-online
 
 ---
-Mongo queries:
-show all collections
-> show collections
-
-get collection indexes
-> db.boards.getIndexes()
-> db.mock_rules.getIndexes()
-
-get total collections size in MB
-> db.getCollectionNames().forEach(function(collName) {
-    let stats = db.getCollection(collName).stats();
-    print(collName + ": " + (stats.storageSize / 1024 / 1024).toFixed(2) + " MB");
-});
+Intellij H2 DB:
+path: jdbc:h2:file:../data/mockboard_dev;MODE=MySQL;AUTO_SERVER=TRUE
