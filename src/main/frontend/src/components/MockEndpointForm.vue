@@ -1,13 +1,15 @@
 <script setup>
-import {onMounted, reactive, ref, watch} from "vue";
+import {computed, onMounted, reactive, ref, watch} from "vue";
 import {useToast} from "@/useToast.js";
 import {useBoardStore} from "@/stores/boardStore.js";
 import uiHelper from "@/helpers/uiHelper.js";
+import {getCharacterCount, getLimitStatus, validateMockRule} from "@/helpers/mockRuleValidator.js";
+import constants from "@/constants.js";
 
 const props = defineProps({
     mode: {
         type: String,
-        default: 'create', // 'create' or 'edit'
+        default: 'create',
         validator: (value) => ['create', 'edit'].includes(value)
     },
     mockRuleId: {
@@ -31,6 +33,16 @@ const formData = reactive({
 
 const errors = ref({});
 const isLoading = ref(false);
+
+const pathLimit = computed(() => getLimitStatus(formData.path?.length || 0, constants.VALIDATION.MAX_PATH_LENGTH));
+const bodyLimit = computed(() => {
+    const { bytes } = getCharacterCount(formData.body);
+    return getLimitStatus(bytes, constants.VALIDATION.MAX_BODY_LENGTH);
+});
+const headersCount = computed(() => {
+    const nonEmpty = formData.headers.filter(h => h.key && h.key.trim() !== '').length;
+    return getLimitStatus(nonEmpty, constants.VALIDATION.MAX_HEADERS);
+});
 
 onMounted(() => {
     if (props.mode === 'edit' && props.mockRuleId) {
@@ -66,7 +78,6 @@ const loadMockRule = () => {
     } catch (e) {
         formData.headers = [{ key: 'Content-Type', value: 'application/json' }];
     }
-
     formData.body = mockRule.body || '';
 };
 
@@ -77,38 +88,12 @@ const addHeader = () => {
 
 const removeHeader = (index) => {
     formData.headers.splice(index, 1);
-};
-
-const isValidJson = (str) => {
-    if (!str || str.trim() === '') return true;
-    try {
-        JSON.parse(str);
-        return true;
-    } catch (e) {
-        return false;
-    }
+    delete errors.value[`header_${index}`];
 };
 
 const validate = () => {
-    const errs = {};
-    if (!formData.path) errs.path = "Path is required";
-    if (formData.path && !formData.path.startsWith('/')) errs.path = "Path must start with /";
-
-    const patternCount = (formData.path.match(/\*/g) || []).length;
-    if (patternCount > 3) errs.path = "Max 3 wildcards allowed";
-
-    if (Array.isArray(formData.headers)) {
-        formData.headers.forEach((h, i) => {
-            if (h.key && !h.value) errs[`header_${i}`] = "Value required";
-        });
-    }
-
-    if (!isValidJson(formData.body)) {
-        errs.body = "Body must be valid JSON format";
-    }
-
-    errors.value = errs;
-    return Object.keys(errs).length === 0;
+    errors.value = validateMockRule(formData);
+    return Object.keys(errors.value).length === 0;
 };
 
 const handleSubmit = async () => {
@@ -199,29 +184,55 @@ const handleCancel = () => {
                             <option>DELETE</option>
                             <option>PATCH</option>
                             <option>OPTIONS</option>
+                            <option>HEAD</option>
                         </select>
                     </div>
                     <div class="flex-grow-1">
-                        <input v-model="formData.path" type="text" class="form-control border-0 font-mono py-3" placeholder="/api/v1/resource/*">
+                        <input v-model="formData.path"
+                               type="text"
+                               class="form-control border-0 font-mono py-3"
+                               placeholder="/api/v1/resource/*"
+                               :maxlength="constants.VALIDATION.MAX_PATH_LENGTH">
                     </div>
                 </div>
                 <div v-if="errors.path" class="text-danger small mt-1">{{ errors.path }}</div>
-                <div class="form-text text-muted small mt-2">
-                    Use <span class="badge bg-light text-dark border font-mono">*</span> as a wildcard. Max 3 wildcards per path.
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <div class="form-text text-muted small">
+                        Use <span class="badge bg-light text-dark border font-mono">*</span> as wildcard.
+                        Max {{ constants.VALIDATION.MAX_WILDCARDS }} wildcards per path.
+                    </div>
+                    <small :class="['font-mono', pathLimit.isNearLimit ? 'text-warning' : 'text-muted']">
+                        {{ pathLimit.current }}/{{ pathLimit.max }}
+                    </small>
                 </div>
             </div>
 
             <div class="mb-4">
-                <label class="form-label fw-bold text-muted small text-uppercase">Response Headers</label>
-                <div class="bg-white border rounded shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="form-label fw-bold text-muted small text-uppercase">Response Headers</label>
+                    <small :class="['font-mono', headersCount.isNearLimit ? 'text-warning fw-bold' : 'text-muted']">
+                        {{ headersCount.current }}/{{ headersCount.max }}
+                    </small>
+                </div>
+                <div class="bg-white border rounded shadow-sm" :class="{'border-warning': headersCount.isAtLimit}">
                     <table class="table table-sm table-borderless mb-0">
                         <tbody class="font-mono border-bottom">
                         <tr v-for="(header, index) in formData.headers" :key="index">
                             <td class="ps-3 py-2">
-                                <input v-model="header.key" type="text" class="form-control form-control-sm border-0" placeholder="Header Key">
+                                <input v-model="header.key"
+                                       type="text"
+                                       class="form-control form-control-sm border-0"
+                                       :class="{'border border-danger': errors[`header_${index}`]}"
+                                       placeholder="Header Key"
+                                       :maxlength="constants.VALIDATION.MAX_HEADER_KEY_LENGTH">
                             </td>
                             <td class="py-2">
-                                <input v-model="header.value" type="text" class="form-control form-control-sm border-0" placeholder="Value">
+                                <input v-model="header.value"
+                                       type="text"
+                                       class="form-control form-control-sm border-0"
+                                       :class="{'border border-danger': errors[`header_${index}`]}"
+                                       placeholder="Value"
+                                       :maxlength="constants.VALIDATION.MAX_HEADER_VALUE_LENGTH">
                             </td>
                             <td class="text-center pt-2" style="width: 50px;">
                                 <button type="button" @click="removeHeader(index)" class="btn btn-link btn-sm text-danger p-0">
@@ -229,11 +240,24 @@ const handleCancel = () => {
                                 </button>
                             </td>
                         </tr>
+                        <tr v-if="formData.headers.length === 0">
+                            <td colspan="3" class="text-center text-muted py-3 small">No headers defined</td>
+                        </tr>
                         </tbody>
                     </table>
+                    <div v-if="errors.headers" class="px-3 pb-2">
+                        <small class="text-danger">{{ errors.headers }}</small>
+                    </div>
                     <div class="p-2 border-top bg-light-subtle">
-                        <button type="button" @click="addHeader" class="btn btn-link btn-sm text-primary text-decoration-none fw-bold small">
-                            + Add Header
+                        <button
+                            type="button"
+                            @click="addHeader"
+                            :disabled="headersCount.isAtLimit"
+                            class="btn btn-link btn-sm text-primary text-decoration-none fw-bold small"
+                            :class="{'disabled text-muted': headersCount.isAtLimit}">
+                            <i class="bi bi-plus-circle me-1"></i>
+                            Add Header
+                            <span v-if="headersCount.isAtLimit" class="text-danger">(Max reached)</span>
                         </button>
                     </div>
                 </div>
@@ -242,13 +266,19 @@ const handleCancel = () => {
             <div class="mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <label class="form-label fw-bold text-muted small text-uppercase mb-0">Response Body (JSON)</label>
+                    <small :class="['font-mono', bodyLimit.isNearLimit ? 'text-warning fw-bold' : 'text-muted']">
+                        {{ (bodyLimit.current / 1000).toFixed(1) }}KB / {{ (bodyLimit.max / 1000).toFixed(1) }}KB
+                    </small>
                 </div>
                 <textarea v-model="formData.body"
-                          class="form-control font-mono p-3 border text-success"
-                          :class="{'border-danger': errors.body}"
+                          class="form-control font-mono p-3 border bg-dark text-success"
+                          :class="{'border-danger': errors.body, 'border-warning': bodyLimit.isNearLimit && !errors.body}"
                           rows="8"
                           placeholder='{ "message": "Hello World" }'></textarea>
                 <div v-if="errors.body" class="text-danger small mt-1">{{ errors.body }}</div>
+                <div v-else-if="bodyLimit.isNearLimit" class="text-warning small mt-1">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>Approaching size limit
+                </div>
             </div>
 
             <div class="row g-4 mb-4">

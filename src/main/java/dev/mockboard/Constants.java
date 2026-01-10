@@ -29,7 +29,7 @@ public final class Constants {
     public static final int DELETED_EVENTS_PROCESS_DELAY = 21_000;
 
     // validations
-    public static final Pattern VALID_PATH_PATTERN = Pattern.compile("^/[a-zA-Z0-9/_\\-*{}]+$");
+    public static final Pattern VALID_PATH_PATTERN = Pattern.compile("^/[a-zA-Z0-9/_\\-*]+$");
     public static final Set<String> VALID_HTTP_METHODS = Set.of("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS");
     public static final int MAX_PATH_LENGTH = Env.getInt("MBD_VALIDATION_MOCK_MAX_PATH_LENGTH", 250);
     public static final int MAX_BODY_LENGTH = Env.getInt("MBD_VALIDATION_MOCK_MAX_BODY_LENGTH", 5_000);

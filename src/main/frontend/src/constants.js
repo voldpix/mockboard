@@ -14,11 +14,23 @@ export default {
     OWNER_TOKEN_HEADER_KEY: 'X-Owner-Token',
 
     // app
-    MAX_MOCKS: 12,
     DASHBOARD_VIEWS: {
         DASHBOARD: 'dashboard',
         CREATE_MOCK: 'create_mock',
         EDIT_MOCK: 'edit_mock',
         LOG_DETAILS: 'log_details',
     },
+
+    // validation
+    MAX_MOCKS: 12,
+    VALIDATION: {
+        MAX_PATH_LENGTH: 250,
+        MAX_BODY_LENGTH: 5000,
+        MAX_WILDCARDS: 3,
+        MAX_HEADERS: 5,
+        MAX_HEADER_KEY_LENGTH: 100,
+        MAX_HEADER_VALUE_LENGTH: 500,
+        VALID_HTTP_METHODS: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'],
+        VALID_PATH_PATTERN: /^\/[a-zA-Z0-9/_\-*{}]+$/,
+    }
 }
