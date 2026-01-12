@@ -49,4 +49,5 @@ public final class Constants {
     public static final String SSE_EMITTER_EVENT_PING = "ping";
     public static final String SSE_EMITTER_EVENT_SHUTDOWN = "server-shutdown";
 
+    public static final String DEFAULT_EXECUTION_RESPONSE = "{\"message\": \"Hello from Mockboard.dev\"}";
 }

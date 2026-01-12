@@ -1,5 +1,6 @@
 package dev.mockboard.service;
 
+import dev.mockboard.Constants;
 import dev.mockboard.cache.MockRuleCache;
 import dev.mockboard.common.domain.dto.MockRuleDto;
 import dev.mockboard.common.utils.RequestUtils;
@@ -34,7 +35,7 @@ public class MockExecutionService {
 
         var mockRule = findMatchingRule(apiKey, mockPath, method).orElse(null);
         int statusCode = 200;
-        var body = "{\"message\": \"Hello from Mockboard.dev\"}";
+        var body = Constants.DEFAULT_EXECUTION_RESPONSE;
 
         if (mockRule != null) {
             statusCode = mockRule.getStatusCode();
