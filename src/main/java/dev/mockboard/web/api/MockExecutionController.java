@@ -1,6 +1,7 @@
 package dev.mockboard.web.api;
 
 import dev.mockboard.service.MockExecutionService;
+import dev.mockboard.service.WebhookService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MockExecutionController {
 
     private final MockExecutionService mockExecutionService;
+    private final WebhookService webhookService;
 
     @RequestMapping(value = "/**", method = {
             RequestMethod.GET,
@@ -33,6 +35,8 @@ public class MockExecutionController {
 
         var executionTime = System.currentTimeMillis() - executionStart;
         log.debug("Execution time: {}ms", executionTime);
+
+        webhookService.processWebhookAsync(apiKey, executionTime);
         return ResponseEntity
                 .status(result.statusCode())
                 .headers(result.headers())
