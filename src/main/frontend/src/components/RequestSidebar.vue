@@ -75,8 +75,9 @@ const handleReconnect = () => {
     }
 };
 
-onMounted(() => {
+onMounted(async () => {
     if (boardStore.board?.id) {
+        await boardStore.fetchWebhooks()
         connectSSE();
     }
     webhookTimestampTimer = setInterval(() => {
