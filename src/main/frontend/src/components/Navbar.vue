@@ -22,8 +22,7 @@ const copyUrl = () => {
 }
 
 const closeBoard = async () => {
-    const result = confirm("Are you sure you want to delete the board?")
-    if (!result) return
+    if (!window.confirm("Are you sure you want to delete the board?")) return;
 
     try {
         await boardStore.deleteBoardById()
@@ -37,10 +36,11 @@ const closeBoard = async () => {
 </script>
 
 <template>
-    <nav class="navbar navbar-fixed fixed-top px-3">
+    <nav class="navbar navbar-fixed fixed-top px-3 bg-white">
         <div class="d-flex align-items-center w-100">
-            <a class="navbar-brand me-4 fw-bold">
-                <i class="bi bi-box-seam-fill text-primary"></i> MockBoard<span class="text-muted fw-light">.dev</span>
+            <a href="/" class="navbar-brand me-4 fw-bold d-flex align-items-center">
+                <img src="/logo.png" class="navbar-logo me-2" alt="logo" width="30" height="30"/>
+                MockBoard<span class="text-muted fw-light">.dev</span>
             </a>
 
             <div class="input-group input-group-sm mx-auto" style="min-width: 300px; max-width: 560px;">

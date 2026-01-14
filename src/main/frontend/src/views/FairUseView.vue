@@ -7,7 +7,7 @@ import constants from '@/constants.js'
         <div class="container" style="max-width: 800px;">
             <div class="text-center mb-5">
                 <div class="d-flex align-items-center justify-content-center gap-2 mb-3 fw-bold fs-2">
-                    <i class="bi bi-box-seam-fill text-primary"></i>
+                    <img src="/logo.png" alt="logo" width="48" height="48"/>
                     <span>MockBoard<span class="text-muted fw-light">.dev</span></span>
                 </div>
                 <h1 class="fw-bold mb-2">Fair Use Policy</h1>

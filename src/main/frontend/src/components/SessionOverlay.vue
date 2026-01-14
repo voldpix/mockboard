@@ -73,7 +73,7 @@ const handleContinue = () => {
                 <div class="col-md-5 bg-light border-end d-flex flex-column justify-content-between p-4 p-md-5">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-4 fw-bold fs-4">
-                            <i class="bi bi-box-seam-fill text-primary"></i>
+                            <img src="/logo.png" alt="logo" width="48" height="48"/>
                             <span>
                                 MockBoard<span class="text-muted fw-light">.dev</span>
                             </span>
