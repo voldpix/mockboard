@@ -2,6 +2,7 @@ export class WebhookModel {
     constructor(data = {}) {
         this.id = data.id || null;
         this.boardId = data.boardId || null;
+        // todo: idea to make BE to save mockRuleId we might make something fun
         this.method = data.method || null;
         this.path = data.path || null;
         this.fullUrl = data.fullUrl || null;

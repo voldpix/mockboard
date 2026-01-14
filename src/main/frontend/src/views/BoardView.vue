@@ -19,7 +19,7 @@ const onSessionContinue = () => {
     isReady.value = true
 }
 
-const onLogSelected = (log) => {
+const onWebhookSelected = (log) => {
     if (dashboardRef.value) {
         dashboardRef.value.openWebhookDetails(log)
     }
@@ -34,7 +34,7 @@ const onLogSelected = (log) => {
 
     <template v-if="isReady">
         <Navbar/>
-        <RequestSidebar @view-webhook="onLogSelected"/>
+        <RequestSidebar @view-webhook="onWebhookSelected"/>
         <DashboardLayout ref="dashboardRef"/>
         <Footer/>
     </template>
