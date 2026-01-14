@@ -33,7 +33,7 @@ Every day at **3:00 AM UTC**, the server performs a hard reset. All mocks, data,
 
 ---
 
-## 📖 The Story: From SaaS to Open Source
+## 📖 From SaaS to Open Source
 
 The original project started in 2025 as a collaborative initiative among a group of enthusiasts building a SaaS prototype in Elixir.
 
