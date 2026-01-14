@@ -4,6 +4,7 @@ import constants from '@/constants.js'
 import DashboardMockRules from "@/components/DashboardMockRules.vue";
 import {useBoardStore} from "@/stores/boardStore.js";
 import MockEndpointForm from "@/components/MockEndpointForm.vue";
+import RequestDetails from "@/components/RequestDetails.vue";
 
 const boardStore = useBoardStore();
 
@@ -13,7 +14,7 @@ const viewEditMock = constants.DASHBOARD_VIEWS.EDIT_MOCK
 const viewLogDetails = constants.DASHBOARD_VIEWS.LOG_DETAILS
 
 const currentView = ref(viewDashboard)
-const selectedLog = ref(null)
+const selectedWebhook = ref(null)
 const selectedMockRuleId = ref(null)
 
 const openCreate = () => {
@@ -28,11 +29,11 @@ const openEdit = (mockRuleId) => {
 
 const closePanel = () => {
     currentView.value = viewDashboard
-    selectedLog.value = null
+    selectedWebhook.value = null
 }
 
 const openWebhookDetails = (log) => {
-    selectedLog.value = log
+    selectedWebhook.value = log
     currentView.value = viewLogDetails
 }
 
@@ -62,7 +63,7 @@ defineExpose({openWebhookDetails, openEdit})
         </div>
 
         <div v-if="currentView === viewLogDetails" class="w-100 px-lg-4" >
-            <h1>Webhook details panel: {{selectedLog.path}}</h1>
+            <RequestDetails :webhook="selectedWebhook" @close="closePanel"/>
         </div>
 
         <div v-if="currentView === viewCreateMock" class="w-100 px-lg-4">
