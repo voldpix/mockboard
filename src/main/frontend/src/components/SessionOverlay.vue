@@ -42,7 +42,7 @@ const handleStartNew = async () => {
     } catch (err) {
         switch (err.status) {
             case 429:
-                error('Too many requests! Please wait a minute before trying again.')
+                error('Too many board creation requests. Please try again later!')
                 break
             case 500:
                 error('Our server is having a moment. Please try again later.');

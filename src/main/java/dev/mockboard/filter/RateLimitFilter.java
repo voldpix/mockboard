@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Set;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -21,6 +22,10 @@ import java.io.IOException;
 public class RateLimitFilter implements Filter {
 
     private final RateLimiterCache rateLimiterCache;
+
+    private static final Set<String> EXTENSIONS_TO_IGNORE = Set.of(
+            ".js", ".css", ".ico", ".png", ".woff", ".woff2"
+    );
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
@@ -30,6 +35,11 @@ public class RateLimitFilter implements Filter {
         var ip = RequestUtils.getClientIp(request);
         var path = request.getRequestURI();
         var method = request.getMethod();
+
+        if (shouldSkip(path)) {
+            filterChain.doFilter(servletRequest, servletResponse);
+            return;
+        }
 
         var allowed = true;
         if (path.startsWith("/api/boards") && "POST".equals(method)) {
@@ -50,5 +60,9 @@ public class RateLimitFilter implements Filter {
         }
 
         filterChain.doFilter(servletRequest, servletResponse);
+    }
+
+    private boolean shouldSkip(String path) {
+        return EXTENSIONS_TO_IGNORE.stream().anyMatch(path::endsWith);
     }
 }

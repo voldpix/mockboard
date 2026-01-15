@@ -6,6 +6,10 @@ services:
         environment:
           # make the dev profile active for testing
           - SPRING_PROFILES_ACTIVE=dev
+            # rate limit settings
+          - MBD_RATE_LIMIT_MAX_BOARDS_PER_HOUR=3
+          - MBD_RATE_LIMIT_MAX_MOCK_EXECUTIONS_PER_MINUTE=30
+          - MBD_RATE_LIMIT_MAX_OTHER_REQUESTS_PER_MINUTE=80
           - DB_PATH=jdbc:h2:file:/backend/data/mockboard_dev;MODE=MySQL;AUTO_SERVER=TRUE
         ports:
             - "8888:8000"
