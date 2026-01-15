@@ -10,10 +10,10 @@ Accessing the Web Interface
 Open your web browser and navigate to: http://localhost:8888
 
 The Mockboard.dev UI will appear, displaying:
-The Base URL for accessing mock endpoints
-Your unique API Key that will be used to route requests to your mocks
+The Base URL for accessing mock endpoints, including your unique API Key
+List of previously created mocks
+Recent requests received
 
-Creating Mock Endpoints
 Use the web interface to create your mock endpoints. You can define:
 - The endpoint path (e.g., `/api/users`)
 - HTTP method (GET, POST, PUT, DELETE, etc.)
@@ -24,7 +24,6 @@ Use the web interface to create your mock endpoints. You can define:
 
 Example: Create a mock endpoint with the path `/api/users` that returns a list of users.
 
-Using Your Mock Endpoints
 Once you've created a mock endpoint, you can access it using your API client, cURL or application code etc.
 All mock endpoints follow this pattern:
 http://localhost:8888/m/{apiKey}/{mockPath}
