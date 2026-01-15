@@ -6,10 +6,9 @@ services:
         environment:
           # make the dev profile active for testing
           - SPRING_PROFILES_ACTIVE=dev
-          - PORT=8888
           - DB_PATH=jdbc:h2:file:/backend/data/mockboard_dev;MODE=MySQL;AUTO_SERVER=TRUE
         ports:
-            - "8888:8888"
+            - "8888:8000"
         volumes:
           - h2-data:/backend/data
           - mb-logs:/backend/logs
