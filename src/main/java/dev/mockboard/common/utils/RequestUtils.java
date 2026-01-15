@@ -9,8 +9,13 @@ public final class RequestUtils {
 
     public static String getClientIp(HttpServletRequest request) {
         var forwardedFor = request.getHeader("X-Forwarded-For");
-        if (forwardedFor != null && !forwardedFor.isEmpty()) {
+        if (forwardedFor != null && !forwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(forwardedFor)) {
             return forwardedFor.split(",")[0].trim();
+        }
+
+        var realIp = request.getHeader("X-Real-IP");
+        if (realIp != null && !realIp.isEmpty() && !"unknown".equalsIgnoreCase(realIp)) {
+            return realIp;
         }
         return request.getRemoteAddr();
     }
