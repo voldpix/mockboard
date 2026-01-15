@@ -1,7 +1,9 @@
 package dev.mockboard.service;
 
 import dev.mockboard.cache.BoardCache;
+import dev.mockboard.cache.MatchingEngineCache;
 import dev.mockboard.cache.MockRuleCache;
+import dev.mockboard.cache.WebhookCache;
 import dev.mockboard.common.domain.dto.BoardDto;
 import dev.mockboard.common.exception.NotFoundException;
 import dev.mockboard.common.utils.IdGenerator;
@@ -26,9 +28,12 @@ public class BoardService {
 
     private final EventQueue eventQueue;
     private final ModelMapper modelMapper;
-    private final BoardCache boardCache;
     private final BoardRepository boardRepository;
+
+    private final BoardCache boardCache;
     private final MockRuleCache mockRuleCache;
+    private final MatchingEngineCache matchingEngineCache;
+    private final WebhookCache webhookCache;
 
     public BoardDto createBoard() {
         var boardId = IdGenerator.generateBoardId();
@@ -67,8 +72,11 @@ public class BoardService {
 
     public void deleteBoard(BoardDto boardDto) {
         log.info("Deleting board: {}", boardDto.getId());
+
         boardCache.invalidate(boardDto.getId());
         mockRuleCache.invalidate(boardDto.getId());
+        matchingEngineCache.invalidate(boardDto.getId());
+        webhookCache.invalidate(boardDto.getId());
 
         eventQueue.publish(DomainEvent.delete(boardDto.getId(), Board.class));
     }
