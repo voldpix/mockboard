@@ -42,9 +42,12 @@ public class RateLimitFilter implements Filter {
         }
 
         var allowed = true;
-        if (path.startsWith("/api/boards") && "POST".equals(method)) {
+        var normalizedPath = path.endsWith("/") && path.length() > 1
+                ? path.substring(0, path.length() - 1)
+                : path;
+        if ("/api/boards".equals(normalizedPath) && "POST".equals(method)) {
             allowed = rateLimiterCache.allowBoardCreation(ip);
-        } else if (path.startsWith("/m")) {
+        } else if (normalizedPath.startsWith("/m")) {
             allowed = rateLimiterCache.allowMockExecution(ip);
         }
 
