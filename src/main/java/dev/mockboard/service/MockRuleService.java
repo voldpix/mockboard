@@ -104,6 +104,13 @@ public class MockRuleService {
 
     public void deleteMockRule(BoardDto boardDto, String mockRuleId) {
         log.info("deleting mock rule={} for boardId={}", mockRuleId, boardDto.getId());
+        var mockRules = getMockRules(boardDto);
+        var match = mockRules.stream().filter(m -> m.getId().equals(mockRuleId)).findFirst().orElse(null);
+        if (match == null) {
+            log.info("Nothing to delete, mock rule not found for id: {}", mockRuleId);
+            return;
+        }
+
         mockRuleCache.deleteMockRule(boardDto.getId(), mockRuleId);
         matchingEngineCache.invalidate(boardDto.getId());
         eventQueue.publish(DomainEvent.delete(mockRuleId, MockRule.class));
