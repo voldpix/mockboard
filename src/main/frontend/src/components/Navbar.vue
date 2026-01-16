@@ -14,8 +14,8 @@ const displayUrl = computed(() => {
         : 'Session initializing...'
 })
 
-const copyUrl = () => {
-    navigator.clipboard.writeText(displayUrl.value)
+const copyUrl = async () => {
+    await navigator.clipboard.writeText(displayUrl.value)
     copied.value = true
     setTimeout(() => (copied.value = false), 2000)
 }

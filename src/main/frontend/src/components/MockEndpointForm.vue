@@ -5,6 +5,7 @@ import {useBoardStore} from "@/stores/boardStore.js";
 import uiHelper from "@/helpers/uiHelper.js";
 import {getCharacterCount, getLimitStatus, validateMockRule} from "@/helpers/mockRuleValidator.js";
 import constants from "@/constants.js";
+import JsonEditor from "@/components/editor/JsonEditor.vue";
 
 const props = defineProps({
     mode: {
@@ -26,19 +27,16 @@ const formData = reactive({
     method: 'GET',
     path: '',
     headers: [{ key: 'Content-Type', value: 'application/json' }],
-    body: '{}',
+    body: '',
     statusCode: 200,
     delay: 0
 });
 
 const errors = ref({});
 const isLoading = ref(false);
+const jsonEditor = ref(null);
 
 const pathLimit = computed(() => getLimitStatus(formData.path?.length || 0, constants.VALIDATION.MAX_PATH_LENGTH));
-const bodyLimit = computed(() => {
-    const { bytes } = getCharacterCount(formData.body);
-    return getLimitStatus(bytes, constants.VALIDATION.MAX_BODY_LENGTH);
-});
 const headersCount = computed(() => {
     const nonEmpty = formData.headers.filter(h => h.key && h.key.trim() !== '').length;
     return getLimitStatus(nonEmpty, constants.VALIDATION.MAX_HEADERS);
@@ -266,19 +264,14 @@ const handleCancel = () => {
             <div class="mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <label class="form-label fw-bold text-muted small text-uppercase mb-0">Response Body (JSON)</label>
-                    <small :class="['font-mono', bodyLimit.isNearLimit ? 'text-warning fw-bold' : 'text-muted']">
-                        {{ (bodyLimit.current / 1000).toFixed(1) }}KB / {{ (bodyLimit.max / 1000).toFixed(1) }}KB
-                    </small>
                 </div>
-                <textarea v-model="formData.body"
-                          class="form-control font-mono p-3 border bg-dark text-success"
-                          :class="{'border-danger': errors.body, 'border-warning': bodyLimit.isNearLimit && !errors.body}"
-                          rows="8"
-                          placeholder='{ "message": "Hello World" }'></textarea>
-                <div v-if="errors.body" class="text-danger small mt-1">{{ errors.body }}</div>
-                <div v-else-if="bodyLimit.isNearLimit" class="text-warning small mt-1">
-                    <i class="bi bi-exclamation-triangle-fill me-1"></i>Approaching size limit
-                </div>
+                <JsonEditor
+                    ref="jsonEditor"
+                    v-model="formData.body"
+                    :max-bytes="constants.VALIDATION.MAX_BODY_LENGTH"
+                    @valid="() => delete errors.body"
+                    @invalid="(err) => errors.body = err"
+                />
             </div>
 
             <div class="row g-4 mb-4">
@@ -319,3 +312,9 @@ const handleCancel = () => {
         </form>
     </div>
 </template>
+
+<style scoped>
+input::placeholder {
+    color: #858585;
+}
+</style>
