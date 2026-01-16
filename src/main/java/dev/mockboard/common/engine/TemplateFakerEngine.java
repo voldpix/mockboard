@@ -26,8 +26,9 @@ public class TemplateFakerEngine {
             var supplier = DICTIONARY.get(key);
             if (supplier != null) return supplier.get();
 
-            // not registered template, return original for now
-            return "{{" + key + "}}";
+            // not registered template
+            // recursion happens when return original template
+            return "[unknown: " + key + "]";
         };
 
         this.substitutor = new StringSubstitutor(fakerLookup);
@@ -44,10 +45,27 @@ public class TemplateFakerEngine {
     private void initializeDictionary() {
         DICTIONARY.clear();
 
-        // user
+        // personal data
         DICTIONARY.put("user.fullName", () -> FAKER.name().fullName());
         DICTIONARY.put("user.firstName", () -> FAKER.name().firstName());
         DICTIONARY.put("user.lastName", () -> FAKER.name().lastName());
         DICTIONARY.put("user.email", () -> FAKER.internet().emailAddress());
+        DICTIONARY.put("user.username", () -> FAKER.credentials().username());
+        DICTIONARY.put("user.phoneNumber", () -> FAKER.phoneNumber().cellPhone());
+        DICTIONARY.put("user.avatar", () -> FAKER.avatar().image());
+
+        // address / location
+        DICTIONARY.put("address.full", () -> FAKER.address().fullAddress());
+        DICTIONARY.put("address.city", () -> FAKER.address().city());
+        DICTIONARY.put("address.street", () -> FAKER.address().streetAddress());
+        DICTIONARY.put("address.zipCode", () -> FAKER.address().zipCode());
+        DICTIONARY.put("address.country", () -> FAKER.address().country());
+        DICTIONARY.put("address.countryCode", () -> FAKER.address().countryCode());
+        DICTIONARY.put("address.lat", () -> FAKER.address().latitude());
+        DICTIONARY.put("address.lon", () -> FAKER.address().longitude());
+
+        // content
+        DICTIONARY.put("content.sentence", () -> FAKER.lorem().sentence());
+        DICTIONARY.put("content.paragraph", () -> FAKER.lorem().paragraph());
     }
 }
