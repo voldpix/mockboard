@@ -187,44 +187,43 @@ defineExpose({
             </div>
             <div class="toolbar-actions">
                 <button
-                    type="button"
-                    @click="formatJson"
-                    class="toolbar-icon-btn"
                     :disabled="hasError"
-                    title="Format JSON">
+                    class="toolbar-icon-btn"
+                    title="Format JSON"
+                    type="button"
+                    @click="formatJson">
                     <i class="bi bi-code-square"></i>
                 </button>
                 <button
-                    type="button"
-                    @click="copyToClipboard"
+                    :title="copied ? 'Copied!' : 'Copy to clipboard'"
                     class="toolbar-icon-btn"
-                    :title="copied ? 'Copied!' : 'Copy to clipboard'">
+                    type="button"
+                    @click="copyToClipboard">
                     <i :class="copied ? 'bi bi-check-lg' : 'bi bi-clipboard'"></i>
                 </button>
-                <span v-if="charCount" class="char-count" :class="{ 'near-limit': isNearLimit }">
-          {{ formatBytes(charCount) }}
-          <span v-if="maxBytes"> / {{ formatBytes(maxBytes) }}</span>
-        </span>
+                <span :class="{ 'near-limit': isNearLimit }" class="char-count">{{ formatBytes(charCount) }}
+                    <span v-if="maxBytes"> / {{ formatBytes(maxBytes) }}</span>
+                </span>
             </div>
         </div>
 
-        <div class="json-editor-wrapper" :class="{ 'has-error': hasError }">
-            <div class="line-numbers" ref="lineNumbers">
+        <div :class="{ 'has-error': hasError }" class="json-editor-wrapper">
+            <div ref="lineNumbers" class="line-numbers">
                 <div v-for="line in lineCount" :key="line" class="line-number">{{ line }}</div>
             </div>
             <textarea
-                name="jsonEditorArea"
                 ref="textarea"
                 v-model="localValue"
-                @input="handleInput"
-                @blur="handleBlur"
-                @keydown="handleKeydown"
-                class="json-editor-textarea"
                 :placeholder="placeholder"
-                spellcheck="false"
+                autocapitalize="off"
                 autocomplete="off"
                 autocorrect="off"
-                autocapitalize="off"
+                class="json-editor-textarea"
+                name="jsonEditorArea"
+                spellcheck="false"
+                @blur="handleBlur"
+                @input="handleInput"
+                @keydown="handleKeydown"
             ></textarea>
         </div>
     </div>
