@@ -15,6 +15,8 @@ import java.util.function.Supplier;
 @Component
 public class TemplateFakerEngine {
 
+    private static final int MAX_KEY_LENGTH = 48;
+
     private static final Faker FAKER = new Faker(Locale.US);
     private static final Map<String, Supplier<String>> DICTIONARY = new ConcurrentHashMap<>();
     private final StringSubstitutor substitutor;
@@ -23,18 +25,38 @@ public class TemplateFakerEngine {
         log.info("Initializing faker dictionary...");
         initializeDictionary();
         StringLookup fakerLookup = key -> {
-            var supplier = DICTIONARY.get(key);
+            if (key == null) return null;
+
+            // should trim/remove whitespaces
+            // {{   user.fullName    }} != {{user.fullName}}
+            var trimmedKey = key.trim();
+            if (isInvalidKey(trimmedKey)) return null;
+
+            var supplier = DICTIONARY.get(trimmedKey);
             if (supplier != null) return supplier.get();
 
             // not registered template
             // recursion happens when return original template
-            return "[unknown: " + key + "]";
+            return "[unknown: " + trimmedKey + "]";
         };
 
         this.substitutor = new StringSubstitutor(fakerLookup);
         this.substitutor.setVariablePrefix("{{");
         this.substitutor.setVariableSuffix("}}");
         this.substitutor.setEnableSubstitutionInVariables(false);
+    }
+
+    private boolean isInvalidKey(String key) {
+        if (key.length() > MAX_KEY_LENGTH) return true;
+        for (char c : key.toCharArray()) {
+            // input body is json string, possbile case that needs to be handled:
+            // { "username": "{{ test", "address": " test 2}}" }
+            // {{{{user.fullName}}}}
+            if (c == '"' || c == '\n' || c == '\r' || c == ':' || c == '{' || c == '}') {
+                return true;
+            }
+        }
+        return false;
     }
 
     public String applyFaker(String input) {
