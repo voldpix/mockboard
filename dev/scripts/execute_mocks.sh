@@ -3,7 +3,7 @@
 # chmod +x <script>.sh
 
 URL="http://localhost:8000/m/DT95e6DHN7mhEiiEDpp8IbVB/api/users"
-TOTAL_RECORDS=10000
+TOTAL_RECORDS=1000
 CONCURRENCY=10
 
 echo "Creating $TOTAL_RECORDS records to $URL with concurrency of $CONCURRENCY..."
