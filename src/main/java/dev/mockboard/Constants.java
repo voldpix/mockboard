@@ -22,13 +22,12 @@ public final class Constants {
     public static final String OWNER_TOKEN_HEADER_KEY = "X-Owner-Token";
 
     // events
-    public static final int EVENT_QUEUE_CAPACITY = Env.getInt("MBD_EVENT_QUEUE_CAPACITY", 10_000);
-    public static final int MAX_EVENT_CONSUMER_DRAIN_ELEMS = Env.getInt("MBD_EVENT_MAX_EVENT_DRAIN", 500);
-
-    // scheduler
-    public static final int CREATED_EVENTS_PROCESS_DELAY = Env.getInt("MBD_EVENT_CREATED_EVENTS_PROCESS_DELAY", 2_000);
-    public static final int UPDATED_EVENTS_PROCESS_DELAY = Env.getInt("MBD_EVENT_UPDATED_EVENTS_PROCESS_DELAY", 5_000);
-    public static final int DELETED_EVENTS_PROCESS_DELAY = Env.getInt("MBD_EVENT_DELETED_EVENTS_PROCESS_DELAY", 13_000);
+    public static final int EVENT_FIFO_QUEUE_CAPACITY = Env.getInt("MBD_EVENT_QUEUE_CAPACITY", 10_000);
+    public static final int EVENT_FIFO_PROCESS_DELAY = 2_220;
+    public static final int EVENT_DEDUP_PROCESS_DELAY = 5_000;
+    public static final int EVENT_CONSUMER_DRAIN_BOARD_ELEMS = Env.getInt("MBD_EVENT_CONSUMER_DRAIN_BOARD_ELEMS", 100);
+    public static final int EVENT_CONSUMER_DRAIN_MOCK_RULE_ELEMS = Env.getInt("MBD_EVENT_CONSUMER_DRAIN_MOCK_RULE_ELEMS", 200);
+    public static final int EVENT_CONSUMER_DRAIN_WEBHOOK_ELEMS = Env.getInt("MBD_EVENT_CONSUMER_DRAIN_WEBHOOK_ELEMS", 500);
 
     // validations
     public static final int MAX_MOCK_RULES = 12;

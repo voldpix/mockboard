@@ -45,7 +45,7 @@ public class BoardService {
         var boardDto = modelMapper.map(board, BoardDto.class);
         boardCache.put(board.getId(), boardDto);
 
-        eventQueue.publish(DomainEvent.create(board, Board.class));
+        eventQueue.publish(DomainEvent.create(board, boardId, Board.class));
         log.info("Created board: {}", board.getId());
         return boardDto;
     }

@@ -1,5 +1,6 @@
 package dev.mockboard.event;
 
+import dev.mockboard.Constants;
 import dev.mockboard.repository.BoardRepository;
 import dev.mockboard.repository.MockRuleRepository;
 import dev.mockboard.repository.WebhookRepository;
@@ -12,9 +13,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-
-import static dev.mockboard.Constants.MAX_EVENT_CONSUMER_DRAIN_ELEMS;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -26,123 +28,120 @@ public class EventConsumer {
     private final MockRuleRepository mockRuleRepository;
     private final WebhookRepository webhookRepository;
 
-    @Scheduled(fixedDelayString = "#{T(dev.mockboard.Constants).CREATED_EVENTS_PROCESS_DELAY}")
-    public void processCreateEvents() {
-        processBoards(EventType.CREATE);
-        processMockRules(EventType.CREATE);
-        processWebhooks(EventType.CREATE);
+    @Scheduled(fixedDelay = Constants.EVENT_FIFO_PROCESS_DELAY)
+    public void processFifoBufferEvents() {
+        processBoards();
+        processMockRules();
     }
 
-    @Scheduled(fixedDelayString = "#{T(dev.mockboard.Constants).UPDATED_EVENTS_PROCESS_DELAY}")
-    public void processUpdateEvents() {
-        processBoards(EventType.UPDATE);
-        processMockRules(EventType.UPDATE);
-        processWebhooks(EventType.UPDATE);
+    @Scheduled(fixedDelay = Constants.EVENT_DEDUP_PROCESS_DELAY)
+    public void processDedupBufferEvents() {
+        processWebhooks();
     }
 
-    @Scheduled(fixedDelayString = "#{T(dev.mockboard.Constants).DELETED_EVENTS_PROCESS_DELAY}")
-    public void processDeleteEvents() {
-        processBoards(EventType.DELETE);
-        processMockRules(EventType.DELETE);
-//        processWebhooks(EventType.DELETE);
-    }
-
-    private void processBoards(EventType type) {
-        var events = eventQueue.drain(type, Board.class, MAX_EVENT_CONSUMER_DRAIN_ELEMS);
-        if (CollectionUtils.isEmpty(events)) {
-            return;
-        }
+    private void processBoards() {
+        var events = eventQueue.drain(Board.class, Constants.EVENT_CONSUMER_DRAIN_BOARD_ELEMS);
+        if (CollectionUtils.isEmpty(events)) return;
 
         try {
-            switch (type) {
-                case CREATE -> {
-                    var boards = events.stream()
-                            .map(DomainEvent::getEntity)
-                            .toList();
-                    boardRepository.batchInsert(boards);
-                    log.debug("Created {} boards in DB", boards.size());
-                }
-                case UPDATE -> {
-                    log.warn("Batch board updates not yet implemented");
-                }
-                case DELETE -> {
-                    var boardIds = events.stream()
-                            .map(DomainEvent::getEntityId)
-                            .filter(Objects::nonNull)
-                            .toList();
-                    boardRepository.batchDelete(boardIds);
-                    log.debug("Deleted {} boards from DB", boardIds.size());
-                }
+            var groupedEvents = groupByType(events);
+            if (groupedEvents.containsKey(EventType.CREATE)) {
+                var domainEvents = groupedEvents.get(EventType.CREATE);
+                var list = getEntities(domainEvents);
+                boardRepository.batchInsert(list);
+                log.debug("Inserted {} boards", list.size());
+            }
+
+            if (groupedEvents.containsKey(EventType.UPDATE)) {
+                log.warn("Not implemented yet");
+            }
+
+            if (groupedEvents.containsKey(EventType.DELETE)) {
+                var domainEvents = groupedEvents.get(EventType.DELETE);
+                var ids = getIds(domainEvents);
+                boardRepository.batchDelete(ids);
+                log.debug("Updated {} boards", ids.size());
             }
         } catch (Exception e) {
-            log.error("Failed to process {} board events", type, e);
+            log.error("Failed to process board batch", e);
         }
     }
 
-    private void processMockRules(EventType type) {
-        var events = eventQueue.drain(type, MockRule.class, MAX_EVENT_CONSUMER_DRAIN_ELEMS);
-        if (CollectionUtils.isEmpty(events)) {
-            return;
-        }
+    private void processMockRules() {
+        var events = eventQueue.drain(MockRule.class, Constants.EVENT_CONSUMER_DRAIN_MOCK_RULE_ELEMS);
+        if (CollectionUtils.isEmpty(events)) return;
 
         try {
-            switch (type) {
-                case CREATE -> {
-                    var mockRules = events.stream()
-                            .map(DomainEvent::getEntity)
-                            .toList();
-                    mockRuleRepository.batchInsert(mockRules);
-                    log.debug("Created {} mock rules in DB", mockRules.size());
-                }
-                case UPDATE -> {
-                    var mockRules = events.stream()
-                            .map(DomainEvent::getEntity)
-                            .toList();
-                    mockRuleRepository.batchUpdate(mockRules);
-                    log.debug("Updated {} mock rules in DB", mockRules.size());
-                }
-                case DELETE -> {
-                    var mockRuleIds = events.stream()
-                            .map(DomainEvent::getEntityId)
-                            .filter(Objects::nonNull)
-                            .toList();
-                    mockRuleRepository.batchDelete(mockRuleIds);
-                    log.debug("Deleted {} mock rules from DB", mockRuleIds.size());
-                }
+            var groupedEvents = groupByType(events);
+            if (groupedEvents.containsKey(EventType.CREATE)) {
+                var domainEvents = groupedEvents.get(EventType.CREATE);
+                var list = getEntities(domainEvents);
+                mockRuleRepository.batchInsert(list);
+                log.debug("Inserted {} mock rules", list.size());
+            }
+
+            if (groupedEvents.containsKey(EventType.UPDATE)) {
+                var domainEvents = groupedEvents.get(EventType.UPDATE);
+                var list = getEntities(domainEvents);
+                mockRuleRepository.batchUpdate(list);
+                log.debug("Updated {} mock rules", list.size());
+            }
+
+            if (groupedEvents.containsKey(EventType.DELETE)) {
+                var domainEvents = groupedEvents.get(EventType.DELETE);
+                var ids = getIds(domainEvents);
+                mockRuleRepository.batchDelete(ids);
+                log.debug("Updated {} mock rules", ids.size());
             }
         } catch (Exception e) {
-            log.error("Failed to process {} mock rules events", type, e);
+            log.error("Failed to process mock rules batch", e);
         }
     }
 
-    private void processWebhooks(EventType type) {
-        var events = eventQueue.drain(type, Webhook.class, MAX_EVENT_CONSUMER_DRAIN_ELEMS);
-        if (CollectionUtils.isEmpty(events)) {
-            return;
-        }
+    private void processWebhooks() {
+        var events = eventQueue.drain(Webhook.class, Constants.EVENT_CONSUMER_DRAIN_WEBHOOK_ELEMS);
+        if (CollectionUtils.isEmpty(events)) return;
 
         try {
-            switch (type) {
-                case CREATE -> {
-                    var webhooks = events.stream()
-                            .map(DomainEvent::getEntity)
-                            .toList();
-                    webhookRepository.batchInsert(webhooks);
-                    log.debug("Created {} webhooks in DB", webhooks.size());
-                }
-                case UPDATE -> {
-                    var webhooks = events.stream()
-                            .map(DomainEvent::getEntity)
-                            .toList();
-                    webhookRepository.batchUpdate(webhooks);
-                    log.debug("Updated {} webhooks in DB", webhooks.size());
-                }
-                case DELETE -> {
-                    log.warn("Batch webhook deletes not yet implemented");
-                }
+            var groupedEvents = groupByType(events);
+            if (groupedEvents.containsKey(EventType.CREATE)) {
+                var domainEvents = groupedEvents.get(EventType.CREATE);
+                var list = getEntities(domainEvents);
+                webhookRepository.batchInsert(list);
+                log.debug("Inserted {} webhooks", list.size());
+            }
+
+            if (groupedEvents.containsKey(EventType.UPDATE)) {
+                var domainEvents = groupedEvents.get(EventType.UPDATE);
+                var list = getEntities(domainEvents);
+                webhookRepository.batchUpdate(list);
+                log.debug("Updated {} webhooks", list.size());
+            }
+
+            if (groupedEvents.containsKey(EventType.DELETE)) {
+                log.warn("Webhook DELETE should not be implemented");
             }
         } catch (Exception e) {
-            log.error("Failed to process {} webhook events", type, e);
+            log.error("Failed to process webhook batch", e);
         }
+    }
+
+    private <T>Map<EventType, List<DomainEvent<T>>> groupByType(List<DomainEvent<T>> events) {
+        return events.stream()
+                .collect(Collectors.groupingBy(DomainEvent::getType));
+    }
+
+    private <T>List<T> getEntities(List<DomainEvent<T>> events) {
+        return events.stream()
+                .map(DomainEvent::getEntity)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    private <T>List<String> getIds(List<DomainEvent<T>> events) {
+        return events.stream()
+                .map(DomainEvent::getEntityId)
+                .filter(Objects::nonNull)
+                .toList();
     }
 }

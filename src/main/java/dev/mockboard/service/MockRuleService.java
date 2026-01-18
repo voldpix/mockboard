@@ -54,7 +54,7 @@ public class MockRuleService {
         var mockRule = modelMapper.map(mockRuleDto, MockRule.class);
         mockRuleCache.addMockRule(boardDto.getId(), mockRuleDto);
 
-        eventQueue.publish(DomainEvent.create(mockRule, MockRule.class));
+        eventQueue.publish(DomainEvent.create(mockRule, mockRule.getId(), MockRule.class));
         log.info("Mock rule added bo board: {}", boardDto.getId());
         return new IdResponse(mockRule.getId());
     }
