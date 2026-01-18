@@ -72,7 +72,7 @@ public class WebhookService {
             // otherwise - reference rewrite happened, should process update and use cachedResultDto
             if (cachedResultDto.getId().equals(webhookDto.getId())) {
                 var webhook = modelMapper.map(webhookDto, Webhook.class);
-                eventQueue.publish(DomainEvent.create(webhook, Webhook.class));
+                eventQueue.publish(DomainEvent.create(webhook, webhook.getId(), Webhook.class));
                 sseManager.broadcast(apiKey, webhookDto);
             } else {
                 var webhook = modelMapper.map(cachedResultDto, Webhook.class);
