@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
@@ -27,7 +28,7 @@ public class RequestMetadataValidator {
         if (request.getRequestURI().length() > Constants.MAX_PATH_LENGTH) {
             throw new IllegalArgumentException("Allowed path length exceeded");
         }
-        if (request.getQueryString().length() > Constants.MAX_QUERY_STRING_LENGTH) {
+        if (StringUtils.hasLength(request.getQueryString()) && request.getQueryString().length() > Constants.MAX_QUERY_STRING_LENGTH) {
             throw new IllegalArgumentException("Allowed query string length exceeded");
         }
         var body = extractAndValidateBody(request);
