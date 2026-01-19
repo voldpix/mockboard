@@ -14,11 +14,37 @@ import java.util.concurrent.atomic.LongAdder;
 
 public class MockboardLoadTest {
 
+    /*
+    LATEST TEST:
+
+    Concurrent Users: 500
+    Requests per User: 2000
+
+    Duration: 166 seconds
+    Total Requests: 1006000
+    Successful: 1006000 (100.0%)
+    Failed: 0 (0.0%)
+    Throughput: 6060 req/sec
+
+    Status Code Distribution:
+    200: 1000000 requests
+    201: 3000 requests
+    204: 3000 requests
+
+    Response Times(ms):
+    min: 0
+    max: 1358
+    avg: 38.54447017892644
+    p50: 32
+    p95: 92
+    p99: 123
+     */
+
     private static final String BASE_URL = "http://localhost:8000";
     private static final ObjectMapper JSON = new ObjectMapper();
 
-    private static final int CONCURRENT_USERS = 100;
-    private static final int REQUESTS_PER_USER = 500;
+    private static final int CONCURRENT_USERS = 500;
+    private static final int REQUESTS_PER_USER = 2000;
 
     private static final LongAdder totalRequests = new LongAdder();
     private static final LongAdder successfulRequests = new LongAdder();

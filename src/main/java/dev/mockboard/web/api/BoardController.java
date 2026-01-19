@@ -8,15 +8,15 @@ import dev.mockboard.service.BoardSecurityService;
 import dev.mockboard.service.BoardService;
 import dev.mockboard.service.MockRuleService;
 import dev.mockboard.service.WebhookService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tools.jackson.databind.ObjectMapper;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static dev.mockboard.Constants.OWNER_TOKEN_HEADER_KEY;
 
@@ -30,10 +30,16 @@ public class BoardController {
     private final WebhookService webhookService;
     private final BoardSecurityService boardSecurityService;
 
-    private final ObjectMapper objectMapper;
+    @GetMapping
+    // later on move it to the consfig controller/service
+    public ResponseEntity<Map<String, Object>> countActiveBoards() {
+        var responseMap = new HashMap<String, Object>();
+        responseMap.put("activeBoards", boardService.countActiveBoards());
+        return new ResponseEntity<>(responseMap, HttpStatus.OK);
+    }
 
     @PostMapping
-    public ResponseEntity<BoardDto> createBoard(HttpServletRequest _request) {
+    public ResponseEntity<BoardDto> createBoard() {
         var boardDto = boardService.createBoard();
         return new ResponseEntity<>(boardDto, HttpStatus.CREATED);
     }

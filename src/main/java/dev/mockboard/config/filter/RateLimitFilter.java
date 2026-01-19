@@ -3,6 +3,7 @@ package dev.mockboard.config.filter;
 import dev.mockboard.Constants;
 import dev.mockboard.common.cache.RateLimiterCache;
 import dev.mockboard.common.utils.RequestUtils;
+import dev.mockboard.common.utils.StringUtils;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -47,9 +48,7 @@ public class RateLimitFilter implements Filter {
         }
 
         var allowed = true;
-        var normalizedPath = path.endsWith("/") && path.length() > 1
-                ? path.substring(0, path.length() - 1)
-                : path;
+        var normalizedPath = StringUtils.removeTrailingSlash(path);
         if ("/api/boards".equals(normalizedPath) && "POST".equals(method)) {
             allowed = rateLimiterCache.allowBoardCreation(ip);
         } else if (normalizedPath.startsWith("/m")) {

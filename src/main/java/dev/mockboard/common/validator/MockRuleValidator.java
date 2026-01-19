@@ -3,6 +3,7 @@ package dev.mockboard.common.validator;
 import dev.mockboard.common.domain.dto.MockRuleDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
@@ -26,7 +27,7 @@ public class MockRuleValidator {
     }
 
     private void validatePath(String path) {
-        if (path == null || path.isEmpty()) {
+        if (!StringUtils.hasLength(path)) {
             throw new IllegalArgumentException("Path cannot be empty");
         }
 
@@ -76,7 +77,7 @@ public class MockRuleValidator {
     }
 
     private void validateMethod(String method) {
-        if (method == null || method.isEmpty()) {
+        if (!StringUtils.hasLength(method)) {
             throw new IllegalArgumentException("HTTP method cannot be empty");
         }
 

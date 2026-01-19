@@ -2,7 +2,6 @@
 import {onMounted, ref} from 'vue'
 import constants from "@/constants.js";
 import boardService from '@/services/boardService.js'
-import {BoardModel} from "@/models/boardModel.js";
 import {useBoardStore} from "@/stores/boardStore.js";
 import {useToast} from '@/useToast.js'
 
@@ -11,209 +10,169 @@ const emit = defineEmits(['session-start', 'session-continue'])
 const boardStore = useBoardStore()
 const {success, error} = useToast()
 
+const isLoading = ref(true)
 const showModal = ref(false)
 const isReturningUser = ref(false)
+const capacityReached = ref(false)
+
 const pendingBoardData = ref(null)
+const activeBoards = ref(0)
+const maxBoards = ref(constants.MAX_ACTIVE_BOARDS)
 
 onMounted(async () => {
-    const boardModel = await boardStore.restoreSession()
-    if (boardModel) {
-        if (boardModel.shouldShowOverlay()) {
+    try {
+        try {
+            const stats = await boardService.getStats()
+            activeBoards.value = stats.activeBoards || 0
+
+            if (activeBoards.value >= maxBoards.value) {
+                capacityReached.value = true
+            }
+        } catch (statErr) {
+            console.warn("Stats fetch failed", statErr)
+        }
+
+        const boardModel = await boardStore.restoreSession()
+        if (boardModel) {
+            if (!boardModel.shouldShowOverlay()) {
+                boardStore.setBoard(boardModel)
+                emit('session-continue')
+                showModal.value = false
+                return
+            }
+
             pendingBoardData.value = boardModel
             isReturningUser.value = true
             showModal.value = true
         } else {
-            boardStore.setBoard(boardModel)
-            emit('session-continue')
+            isReturningUser.value = false
+
+            if (activeBoards.value >= maxBoards.value) {
+                capacityReached.value = true
+            }
+            showModal.value = true
         }
-     } else {
-        isReturningUser.value = false
+    } catch (e) {
+        console.error("Init failed", e)
         showModal.value = true
+    } finally {
+        isLoading.value = false
     }
 })
 
 const handleStartNew = async () => {
     try {
         await boardStore.createNewBoard()
-        success('Board created successfully!')
-
+        success('Board created')
         showModal.value = false
         emit('session-start')
     } catch (err) {
-        switch (err.status) {
-            case 429:
-                error('Too many board creation requests. Please try again later!')
-                break
-            case 500:
-                error('Our server is having a moment. Please try again later.');
-                break;
-            default:
-                error(`Something went wrong: ${err.message}`);
+        if (err.status === 403) {
+            capacityReached.value = true
+            activeBoards.value = maxBoards.value
+            error('Capacity reached while you were waiting.')
+        } else {
+            error('Failed to create board.')
         }
-        console.error('Failed to create board', err)
     }
 }
 
 const handleContinue = () => {
     if (pendingBoardData.value) {
         boardStore.setBoard(pendingBoardData.value)
+        emit('session-continue')
     }
-    showModal.value = false
-    success('Welcome back!')
-    emit('session-continue')
+}
+
+const reloadPage = () => {
+    window.location.reload();
 }
 </script>
 
 <template>
-    <div v-if="showModal" class="session-overlay">
-        <div class="card border-0 shadow-lg overflow-hidden w-100"
-             style="max-width: 900px; min-height: 450px; border-radius: 0.75rem;">
-            <div class="row g-0 h-100">
+    <div v-if="showModal" class="fixed-top h-100 w-100 d-flex align-items-center justify-content-center bg-light">
 
-                <div class="col-md-5 bg-light border-end d-flex flex-column justify-content-between p-4 p-md-5">
-                    <div>
-                        <div class="d-flex align-items-center gap-2 mb-4 fw-bold fs-4">
-                            <img src="/logo.png" alt="logo" width="48" height="48"/>
-                            <span>
-                                MockBoard<span class="text-muted fw-light">.dev</span>
-                            </span>
-                        </div>
+        <div class="card border-0 shadow-sm" style="width: 100%; max-width: 480px;">
+            <div class="card-header bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <img src="/logo.png" alt="logo" width="35" height="35" class="opacity-75"/>
+                    <span class="fw-bold small">MockBoard.dev</span>
+                </div>
+                <div class="badge bg-light text-dark border fw-normal py-2 px-3 rounded-pill">
+                    <span class="status-dot me-2" :class="capacityReached ? 'bg-danger' : 'bg-success'"></span>
+                    <span>System Capacity: {{ activeBoards }} / {{ maxBoards }}</span>
+                </div>
+            </div>
 
-                        <div class="d-flex flex-column gap-4">
-                            <div class="d-flex gap-3">
-                                <div class="text-warning mt-1">
-                                    <svg class="bi" fill="none" height="20" stroke="currentColor" viewBox="0 0 24 24"
-                                         width="20">
-                                        <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round"
-                                              stroke-linejoin="round"
-                                              stroke-width="2"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold text-dark mb-1" style="font-size: 0.875rem;">Disposable
-                                        Workspace</h6>
-                                    <p class="text-muted mb-0" style="font-size: 0.75rem; line-height: 1.5;">
-                                        Everything is ephemeral. All data is automatically wiped daily at <span
-                                        class="font-mono text-dark">03:00 UTC</span>.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="d-flex gap-3">
-                                <div class="text-primary mt-1">
-                                    <svg class="bi" fill="none" height="20" stroke="currentColor" viewBox="0 0 24 24"
-                                         width="20">
-                                        <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round"
-                                              stroke-linejoin="round"
-                                              stroke-width="2"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold text-dark mb-1" style="font-size: 0.875rem;">Strict Rate
-                                        Limits</h6>
-                                    <p class="text-muted mb-0" style="font-size: 0.75rem; line-height: 1.5;">
-                                        Fair use policy applies. Mock execution and creation are rate-limited per API
-                                        Key.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="d-flex gap-3">
-                                <div class="text-secondary mt-1">
-                                    <svg class="bi" fill="none" height="20" stroke="currentColor" viewBox="0 0 24 24"
-                                         width="20">
-                                        <path
-                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                                            stroke-linecap="round" stroke-linejoin="round"
-                                            stroke-width="2"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <h6 class="fw-bold text-dark mb-1" style="font-size: 0.875rem;">Private
-                                            Sandbox</h6>
-                                        <span
-                                            class="badge bg-secondary-subtle text-secondary border border-secondary-subtle text-uppercase"
-                                            style="font-size: 10px;">Share Planned</span>
-                                    </div>
-                                    <p class="text-muted mb-0" style="font-size: 0.75rem; line-height: 1.5;">
-                                        Your mocks are private to this browser session. Sharing capabilities are coming
-                                        soon.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+            <div class="card-body p-4 p-md-5">
+                <div v-if="capacityReached && !isReturningUser" class="text-center py-4">
+                    <div class="mb-3 text-muted">
+                        <i class="bi bi-cloud-slash fs-1"></i>
                     </div>
-
-                    <div class="pt-4 border-top mt-4">
-                        <div class="d-flex align-items-center gap-2 text-muted font-mono" style="font-size: 0.75rem;">
-                            <span class="bg-success rounded-circle d-inline-block spinner-grow spinner-grow-sm"
-                                  style="width: 8px; height: 8px; animation-duration: 2s;"></span>
-                            SYSTEM ONLINE
-                        </div>
-                    </div>
+                    <h3 class="fw-bold mb-3">Capacity Reached</h3>
+                    <p class="text-muted mb-4">
+                        Our server is currently handling the maximum number of active boards ({{maxBoards}}).
+                        Please try again in a few minutes.
+                    </p>
+                    <button
+                        @click="reloadPage"
+                        class="btn btn-outline-dark w-100 py-2">
+                        Check Availability
+                    </button>
                 </div>
 
-                <div
-                    class="col-md-7 bg-white p-5 d-flex flex-column justify-content-center position-relative bg-grid-pattern">
-                    <div v-if="!isReturningUser">
-                        <h2 class="fw-bold text-dark mb-2">Start New Session</h2>
-                        <p class="text-muted mb-4" style="font-size: 0.875rem;">
-                            Generate a unique API key to start mocking. This session will persist in your browser until
-                            the daily wipe.
+                <div v-else>
+                    <div class="mb-4">
+                        <h2 class="fw-bold mb-2">{{ isReturningUser ? 'Welcome Back' : 'Get Started' }}</h2>
+                        <p class="text-muted small mb-0" v-if="isReturningUser">
+                            We found a saved session on this device.
                         </p>
+                        <p class="text-muted small mb-0" v-else>
+                            Ephemeral API mocking. No signups, no persistence.
+                        </p>
+                    </div>
 
+                    <div class="d-grid gap-3 mb-4">
                         <button
-                            @click="handleStartNew"
-                            class="btn btn-dark w-100 py-3 d-flex align-items-center justify-content-center gap-2 shadow fw-semibold">
-                            Generate API Key
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                            </svg>
+                            v-if="isReturningUser"
+                            class="btn btn-dark py-3 fw-semibold shadow-sm"
+                            @click="handleContinue">
+                            Restore Session
                         </button>
 
-                        <p class="text-center text-muted mt-4" style="font-size: 0.75rem;">
-                            By continuing, you agree to the <a class="text-decoration-underline text-secondary"
-                                                               href="/fair-use" target="_blank" rel="noopener noreferrer">fair use
-                            policy</a>.
-                        </p>
+                        <button
+                            class="btn py-3 fw-semibold"
+                            :class="isReturningUser ? 'btn-outline-secondary' : 'btn-dark shadow-sm'"
+                            @click="handleStartNew">
+                            {{ isReturningUser ? 'Discard & Create New' : 'Create New Board' }}
+                        </button>
                     </div>
 
-                    <div v-if="isReturningUser">
-                        <div
-                            class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-success-subtle text-success border border-success-subtle mb-3"
-                            style="font-size: 0.75rem;">
-                            <svg fill="none" height="12" stroke="currentColor" viewBox="0 0 24 24" width="12">
-                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                      stroke-width="2"></path>
-                            </svg>
-                            <span class="fw-bold">Previous Session Found</span>
-                        </div>
+                    <div class="bg-light p-3 rounded-2 text-center border border-secondary border-opacity-10">
 
-                        <h2 class="fw-bold text-dark mb-2">Welcome Back</h2>
-                        <p class="text-muted mb-4" style="font-size: 0.875rem;">
-                            We found a locally stored API key. Would you like to continue working with your existing
-                            mocks?
+                        <p class="mb-1 small fw-bold text-dark">
+                            <i class="bi bi-clock me-1"></i> Hard Reset at 03:00 UTC
+                        </p>
+                        <p class="text-muted small mb-3" style="font-size: 0.8rem;">
+                            All data is vaporized daily. Don't get attached.
                         </p>
 
-                        <div class="d-flex flex-column gap-3">
-                            <button
-                                class="btn btn-primary w-100 py-3 fw-semibold shadow-sm d-flex align-items-center justify-content-center gap-2"
-                                @click="handleContinue">
-                                Continue Session
-                            </button>
-
-                            <button class="btn btn-outline-secondary w-100 py-3 fw-semibold bg-white text-dark"
-                                    @click="isReturningUser = false">
-                                Discard & Generate New Key
-                            </button>
-                        </div>
+                        <router-link to="/fair-use" class="small text-decoration-underline text-secondary">
+                            Fair Use Policy
+                        </router-link>
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
 </template>
+
+<style scoped>
+.status-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-bottom: 1px;
+}
+</style>

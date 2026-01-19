@@ -1,10 +1,7 @@
 package dev.mockboard.config.advice;
 
 import dev.mockboard.common.domain.ExceptionResponse;
-import dev.mockboard.common.exception.BadRequestException;
-import dev.mockboard.common.exception.NotFoundException;
-import dev.mockboard.common.exception.RateLimitExceededException;
-import dev.mockboard.common.exception.UnauthorizedException;
+import dev.mockboard.common.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -15,7 +12,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.Map;
 
 @RestControllerAdvice(annotations = RestController.class)
 public class ExceptionHandlerAdvice {
@@ -36,6 +32,12 @@ public class ExceptionHandlerAdvice {
     public ResponseEntity<ExceptionResponse> handleUnauthorizedException(UnauthorizedException ex) {
         var exceptionResponse = new ExceptionResponse(ex.getMessage(), LocalDateTime.now());
         return new ResponseEntity<>(exceptionResponse, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler({ForbiddenException.class})
+    public ResponseEntity<ExceptionResponse> handleForbiddenException(ForbiddenException ex) {
+        var exceptionResponse = new ExceptionResponse(ex.getMessage(), LocalDateTime.now());
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler({RateLimitExceededException.class})

@@ -4,14 +4,20 @@ services:
             context: .
             dockerfile: Dockerfile
         environment:
-          # make the dev profile active for testing
           - SPRING_PROFILES_ACTIVE=dev
-            # rate limit settings
-          - MBD_RATE_LIMIT_ENABLED=true
-          - MBD_RATE_LIMIT_MAX_BOARDS_PER_HOUR=3
-          - MBD_RATE_LIMIT_MAX_MOCK_EXECUTIONS_PER_MINUTE=30
-          - MBD_RATE_LIMIT_MAX_OTHER_REQUESTS_PER_MINUTE=80
           - DB_PATH=jdbc:h2:file:/backend/data/mockboard_dev;MODE=MySQL;AUTO_SERVER=TRUE
+          # app config
+          - MBD_MAX_ACTIVE_BOARDS_CHECK_ENABLED=false
+          - MBD_MAX_ACTIVE_BOARDS=500
+          # event configs
+          - MBD_EVENT_QUEUE_CAPACITY=10000
+          - MBD_EVENT_FIFO_PROCESS_DELAY=3000
+          - MBD_EVENT_DEDUP_PROCESS_DELAY=10000
+          # app rate limiter configs
+          - MBD_RATE_LIMIT_ENABLED=false
+          - MBD_RATE_LIMIT_MAX_BOARDS_PER_HOUR=2
+          - MBD_RATE_LIMIT_MAX_MOCK_EXECUTIONS_PER_MINUTE=20
+          - MBD_RATE_LIMIT_MAX_OTHER_REQUESTS_PER_MINUTE=80
         ports:
             - "8888:8000"
         volumes:
