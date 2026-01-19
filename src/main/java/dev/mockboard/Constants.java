@@ -17,7 +17,7 @@ public final class Constants {
 
     // app limits
     public static final boolean MAX_ACTIVE_BOARDS_CHECK_ENABLED = Env.getBool("MBD_MAX_ACTIVE_BOARDS_CHECK_ENABLED", true);
-    public static final int MAX_ACTIVE_BOARDS = Env.getInt("MBD_MAX_ACTIVE_BOARDS", 1);
+    public static final int MAX_ACTIVE_BOARDS = Env.getInt("MBD_MAX_ACTIVE_BOARDS", 500);
     public static final int MAX_MOCK_RULES = Env.getInt("MBD_MAX_MOCK_RULES", 12);
     public static final int MAX_WEBHOOKS = Env.getInt("MBD_MAX_WEBHOOKS", 15);
 

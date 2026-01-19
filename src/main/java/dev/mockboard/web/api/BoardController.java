@@ -31,6 +31,7 @@ public class BoardController {
     private final BoardSecurityService boardSecurityService;
 
     @GetMapping
+    // later on move it to the consfig controller/service
     public ResponseEntity<Map<String, Object>> countActiveBoards() {
         var responseMap = new HashMap<String, Object>();
         responseMap.put("activeBoards", boardService.countActiveBoards());
