@@ -28,13 +28,18 @@ public class EventConsumer {
     private final MockRuleRepository mockRuleRepository;
     private final WebhookRepository webhookRepository;
 
-    @Scheduled(fixedDelay = Constants.EVENT_FIFO_PROCESS_DELAY)
+    @Scheduled(
+            initialDelay = 5_000,
+            fixedDelayString = "#{T(dev.mockboard.Constants).EVENT_FIFO_PROCESS_DELAY}")
     public void processFifoBufferEvents() {
         processBoards();
         processMockRules();
     }
 
-    @Scheduled(fixedDelay = Constants.EVENT_DEDUP_PROCESS_DELAY)
+    @Scheduled(
+            initialDelay = 10_000,
+            fixedDelayString = "#{T(dev.mockboard.Constants).EVENT_DEDUP_PROCESS_DELAY}"
+    )
     public void processDedupBufferEvents() {
         processWebhooks();
     }

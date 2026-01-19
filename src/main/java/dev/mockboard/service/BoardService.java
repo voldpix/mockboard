@@ -1,9 +1,11 @@
 package dev.mockboard.service;
 
+import dev.mockboard.Constants;
 import dev.mockboard.common.cache.BoardCache;
 import dev.mockboard.common.cache.MockRuleCache;
 import dev.mockboard.common.cache.WebhookCache;
 import dev.mockboard.common.domain.dto.BoardDto;
+import dev.mockboard.common.exception.ForbiddenException;
 import dev.mockboard.common.exception.NotFoundException;
 import dev.mockboard.common.utils.IdGenerator;
 import dev.mockboard.common.utils.StringUtils;
@@ -33,7 +35,17 @@ public class BoardService {
     private final MockRuleCache mockRuleCache;
     private final WebhookCache webhookCache;
 
+    public long countActiveBoards() {
+        return boardCache.size();
+    }
+
     public BoardDto createBoard() {
+        if (Constants.MAX_ACTIVE_BOARDS_CHECK_ENABLED) {
+            var currentActiveBoards = countActiveBoards();
+            if (currentActiveBoards >= Constants.MAX_ACTIVE_BOARDS) {
+                throw new ForbiddenException("Maximum number of active boards exceeded.");
+            }
+        }
         var boardId = IdGenerator.generateBoardId();
         var ownerToken = StringUtils.generate(BOARD_OWNER_TOKEN_LENGTH);
 
