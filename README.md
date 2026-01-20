@@ -22,6 +22,9 @@
 
 **MockBoard.dev** is a lightweight, self-hostable tool for mocking HTTP APIs during local development and testing.
 
+>**Fair warning:** This is early beta. The core works, but there's still a mess under the hood and some UI rough edges. It does what it's supposed to do, the rest is just polish.
+
+
 I built it because I needed to mock REST responses for local development
 without managing complex infrastructure or hand-coding endpoints with fake data.
 
