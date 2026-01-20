@@ -57,6 +57,8 @@ It's simple to use, but under the hood it's designed to handle a lot of traffic 
 > 
 >This architecture works both for solo use when you deploy locally, but also allows working in small teams if needed, so you can host it as a web version.
 
+> **Note on "lightweight":** The Docker image is ~300-500MB (Java isn't tiny), but "lightweight" here means minimal dependencies, low resource usage at runtime, and simple deployment. It runs efficiently on cheap hardware - that's what matters.
+
 ---
 
 ### 🛠️ Usage
