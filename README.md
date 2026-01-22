@@ -161,33 +161,39 @@ Perfect for debugging, monitoring webhooks, or watching integration tests in act
 <a name="hosting"></a>
 ### Self-hosted version
 **Prerequisites:** [Java 21+](https://adoptium.net) or [Docker Desktop](https://www.docker.com).
-#### Option 1: Native (Maven)
-Build and run the application locally:
 
+#### Get the Latest Beta
+To ensure stability, clone the specific tag:
 ```shell
+git clone --branch 0.1-beta --single-branch https://github.com/voldpix/mockboard.git
+
+# or get a current active branch (might be unstable or contain bugs)
 git clone https://github.com/voldpix/mockboard.git
 cd mockboard
+```
+
+#### Option 1: Native (Maven)
+Build and run the application locally:
+#### Run immediately:
+```shell
 ./mvnw spring-boot:run
-
-#or
-
+```
+#### Build and run manually:
+```shell
 mvn clean package -DskipTests
 java -jar target/mockboard*.jar
-
-# Browser access: http://localhost:8000
 ```
+#### Access: http://localhost:8000
 
 #### Option 2: Docker (Recommended)
 The easiest way to get started without installing Java:
 
 ```shell
-git clone https://github.com/voldpix/mockboard.git
-cd mockboard
-
 docker compose up -d --build
-# Browser access: http://localhost:88888
 ```
-**Note:** The first docker build might take some time, as it prioritizes offline dependencies. Follow-up launches will be quick.
+#### Access: http://localhost:8888
+
+**Note:** The first Docker build might take some time, as it prioritizes offline dependencies. Follow-up launches will be quick.
 
 #### Configuration
 Most limits are configurable via [Constants.java](src/main/java/dev/mockboard/Constants.java). You can adjust them either through the docker compose file or by updating the class directly.
