@@ -26,6 +26,17 @@ export const useBoardStore = defineStore("boardStore", {
             this.mockRules = []
             localStorage.removeItem(constants.BOARD_DATA)
         },
+        async initializeConfigs() {
+            try {
+                const result = await boardService.getConfigs()
+                const configs = result.data
+                // todo: map to object
+            } catch (err) {
+                console.error("Unable to receive configs", err)
+                this.clearBoardStore()
+                return null
+            }
+        },
         async restoreSession() {
             const localModel = BoardModel.fromLS(constants.BOARD_DATA)
             if (!localModel || !localModel.id || !localModel.ownerToken || localModel.isExpired()) {

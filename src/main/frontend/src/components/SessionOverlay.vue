@@ -22,7 +22,7 @@ const maxBoards = ref(constants.MAX_ACTIVE_BOARDS)
 onMounted(async () => {
     try {
         try {
-            const stats = await boardService.getStats()
+            const stats = await boardService.getConfigs()
             activeBoards.value = stats.activeBoards || 0
 
             if (activeBoards.value >= maxBoards.value) {
