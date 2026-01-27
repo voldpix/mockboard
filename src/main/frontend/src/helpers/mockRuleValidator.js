@@ -1,5 +1,4 @@
-import constants from "@/constants.js"
-const { VALIDATION } = constants
+import {getConfig} from "@/config.js";
 
 export const validateMockRule = (formData) => {
     const errors = {}
@@ -25,6 +24,7 @@ export const validateMockRule = (formData) => {
 };
 
 const validatePath = (path) => {
+    const v = getConfig().validations
     if (!path || path.trim() === '') {
         return 'Path cannot be empty'
     }
@@ -33,17 +33,17 @@ const validatePath = (path) => {
         return 'Path must start with /'
     }
 
-    if (path.length > VALIDATION.MAX_PATH_LENGTH) {
-        return `Path exceeds maximum length of ${VALIDATION.MAX_PATH_LENGTH} characters`
+    if (path.length > v.maxMockPathLength) {
+        return `Path exceeds maximum length of ${v.maxMockPathLength} characters`
     }
 
-    if (!VALIDATION.VALID_PATH_PATTERN.test(path)) {
+    if (!v.mockPathPattern.test(path)) {
         return 'Path contains invalid characters. Allowed: a-z, A-Z, 0-9, /, _, -, *'
     }
 
     const wildcardCount = (path.match(/\*/g) || []).length;
-    if (wildcardCount > VALIDATION.MAX_WILDCARDS) {
-        return `Path cannot have more than ${VALIDATION.MAX_WILDCARDS} wildcards`
+    if (wildcardCount > v.maxMockPathWildcards) {
+        return `Path cannot have more than ${v.maxMockPathWildcards} wildcards`
     }
 
     if (path.includes('**')) {
@@ -54,31 +54,35 @@ const validatePath = (path) => {
 }
 
 const validateMethod = (method) => {
+    const v = getConfig().validations
     if (!method || method.trim() === '') {
         return 'HTTP method cannot be empty'
     }
 
-    if (!VALIDATION.VALID_HTTP_METHODS.includes(method.toUpperCase())) {
+    if (!v.supportedHttpMethods.includes(method.toUpperCase())) {
         return `Invalid HTTP method: ${method}`
     }
     return null;
 }
 
 const validateStatusCode = (statusCode) => {
+    const v = getConfig().validations
     const code = parseInt(statusCode, 10)
 
     if (isNaN(code)) {
         return 'Status code must be a number'
     }
 
-    if (code < 100 || code > 599) {
-        return 'Invalid HTTP status code (must be 100-599)'
+    if (code < v.minStatusCode || code > v.maxStatusCode) {
+        return `Invalid HTTP status code (must be ${v.minStatusCode}-${v.maxStatusCode})`
     }
 
     return null;
 };
 
 const validateBody = (body) => {
+    const v = getConfig().validations
+
     if (!body || body.trim() === '') {
         return null;
     }
@@ -90,8 +94,8 @@ const validateBody = (body) => {
     }
 
     const bodyBytes = new TextEncoder().encode(body).length
-    if (bodyBytes > VALIDATION.MAX_BODY_LENGTH) {
-        const maxKB = (VALIDATION.MAX_BODY_LENGTH / 1000).toFixed(1)
+    if (bodyBytes > v.maxBodyLength) {
+        const maxKB = (v.maxBodyLength / 1000).toFixed(1)
         return `Body too large (max ${maxKB}KB)`
     }
 
@@ -99,6 +103,7 @@ const validateBody = (body) => {
 }
 
 const validateHeaders = (headers) => {
+    const v = getConfig().validations
     if (!Array.isArray(headers)) {
         return null
     }
@@ -107,8 +112,8 @@ const validateHeaders = (headers) => {
 
     const nonEmptyHeaders = headers.filter(h => h.key && h.key.trim() !== '')
 
-    if (nonEmptyHeaders.length > VALIDATION.MAX_HEADERS) {
-        errors.headers = `Too many headers (max ${VALIDATION.MAX_HEADERS} allowed)`
+    if (nonEmptyHeaders.length > v.maxMockHeaders) {
+        errors.headers = `Too many headers (max ${v.maxMockHeaders} allowed)`
         return errors;
     }
 
@@ -124,12 +129,12 @@ const validateHeaders = (headers) => {
             return
         }
 
-        if (key.length > VALIDATION.MAX_HEADER_KEY_LENGTH) {
-            errors[`header_${index}`] = `Header key too long (max ${VALIDATION.MAX_HEADER_KEY_LENGTH} characters)`
+        if (key.length > v.maxMockHeaderKeyLength) {
+            errors[`header_${index}`] = `Header key too long (max ${v.maxMockHeaderKeyLength} characters)`
         }
 
-        if (value.length > VALIDATION.MAX_HEADER_VALUE_LENGTH) {
-            errors[`header_${index}`] = `Header value too long (max ${VALIDATION.MAX_HEADER_VALUE_LENGTH} characters)`
+        if (value.length > v.maxMockHeaderValueLength) {
+            errors[`header_${index}`] = `Header value too long (max ${v.maxMockHeaderValueLength} characters)`
         }
     })
 

@@ -1,6 +1,6 @@
 import api, {setOwnerToken} from "@/api.js";
 
-const getStatsPath = `api/boards`;
+const getConfigsPath = `api/pre`;
 const createBoardPath = `api/boards`;
 const getBoardPath = (boardId) => `api/boards/${boardId}`;
 const deleteBoardPath = (boardId) => `api/boards/${boardId}`;
@@ -11,8 +11,8 @@ const deleteBoardMockRulePath = (boardId, mockRuleId) => `api/boards/${boardId}/
 const getBoardWebhooksPath = (boardId) => `api/boards/${boardId}/webhooks`;
 
 const BoardService = {
-    getStats() {
-        return api.get(getStatsPath).then(res => res.data);
+    getConfigs() {
+        return api.get(getConfigsPath).then(res => res.data);
     },
     getBoard(boardId, ownerToken) {
         setOwnerToken(ownerToken) // i know it is not ok, but it works and less magic

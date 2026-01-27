@@ -14,9 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static dev.mockboard.Constants.OWNER_TOKEN_HEADER_KEY;
 
@@ -29,14 +27,6 @@ public class BoardController {
     private final MockRuleService mockRuleService;
     private final WebhookService webhookService;
     private final BoardSecurityService boardSecurityService;
-
-    @GetMapping
-    // later on move it to the consfig controller/service
-    public ResponseEntity<Map<String, Object>> countActiveBoards() {
-        var responseMap = new HashMap<String, Object>();
-        responseMap.put("activeBoards", boardService.countActiveBoards());
-        return new ResponseEntity<>(responseMap, HttpStatus.OK);
-    }
 
     @PostMapping
     public ResponseEntity<BoardDto> createBoard() {
