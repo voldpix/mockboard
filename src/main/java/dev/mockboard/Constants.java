@@ -9,6 +9,8 @@ import java.util.regex.Pattern;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Constants {
 
+    public static final String APP_VERSION = "0.3-beta";
+
     // defaults
     public static final int BOARD_ID_LENGTH = 24;
     public static final int BOARD_OWNER_TOKEN_LENGTH = 48;

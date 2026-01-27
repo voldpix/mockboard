@@ -35,13 +35,9 @@ public class BoardService {
     private final MockRuleCache mockRuleCache;
     private final WebhookCache webhookCache;
 
-    public long countActiveBoards() {
-        return boardCache.size();
-    }
-
     public BoardDto createBoard() {
         if (Constants.MAX_ACTIVE_BOARDS_CHECK_ENABLED) {
-            var currentActiveBoards = countActiveBoards();
+            var currentActiveBoards = boardCache.size();
             if (currentActiveBoards >= Constants.MAX_ACTIVE_BOARDS) {
                 throw new ForbiddenException("Maximum number of active boards exceeded.");
             }

@@ -1,7 +1,4 @@
 export default {
-    // base
-    APP_VERSION: '0.2-beta',
-
     // ls
     BOARD_DATA: 'BOARD_DATA',
     SESSION_OVERLAY_REASK_TTL_LS_KEY: 'OVERLAY_REASK_TTL',
@@ -19,19 +16,4 @@ export default {
         EDIT_MOCK: 'edit_mock',
         LOG_DETAILS: 'log_details',
     },
-
-    // validation
-    MAX_MOCKS: 12,
-    MAX_WEBHOOKS: 15,
-    MAX_ACTIVE_BOARDS: 500,
-    VALIDATION: {
-        MAX_PATH_LENGTH: 200,
-        MAX_BODY_LENGTH: 5000,
-        MAX_WILDCARDS: 3,
-        MAX_HEADERS: 5,
-        MAX_HEADER_KEY_LENGTH: 100,
-        MAX_HEADER_VALUE_LENGTH: 500,
-        VALID_HTTP_METHODS: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'],
-        VALID_PATH_PATTERN: /^\/[a-zA-Z0-9/_\-*{}]+$/,
-    }
 }

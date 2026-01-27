@@ -1,5 +1,5 @@
 <script setup>
-import constants from "@/constants.js";
+import {getConfig} from "@/config.js";
 
 const currentYear = () => {
     return new Date().getFullYear();
@@ -19,7 +19,7 @@ const currentYear = () => {
             <span class="me-3">Developed by <a href="https://github.com/voldpix" target="_blank"
                                                rel="noopener noreferrer"
                                                class="text-decoration-none text-primary">voldpix</a></span>
-            <span class="badge bg-light text-dark border">{{ constants.APP_VERSION }}</span>
+            <span class="badge bg-light text-dark border">{{ getConfig().app.version }}</span>
         </div>
     </footer>
 </template>

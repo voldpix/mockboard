@@ -54,7 +54,7 @@ public class EventConsumer {
                 var domainEvents = groupedEvents.get(EventType.CREATE);
                 var list = getEntities(domainEvents);
                 boardRepository.batchInsert(list);
-                log.debug("Inserted {} boards", list.size());
+                log.info("Inserted {} boards", list.size());
             }
 
             if (groupedEvents.containsKey(EventType.UPDATE)) {
@@ -65,7 +65,7 @@ public class EventConsumer {
                 var domainEvents = groupedEvents.get(EventType.DELETE);
                 var ids = getIds(domainEvents);
                 boardRepository.batchDelete(ids);
-                log.debug("Updated {} boards", ids.size());
+                log.info("Updated {} boards", ids.size());
             }
         } catch (Exception e) {
             log.error("Failed to process board batch", e);
@@ -82,21 +82,21 @@ public class EventConsumer {
                 var domainEvents = groupedEvents.get(EventType.CREATE);
                 var list = getEntities(domainEvents);
                 mockRuleRepository.batchInsert(list);
-                log.debug("Inserted {} mock rules", list.size());
+                log.info("Inserted {} mock rules", list.size());
             }
 
             if (groupedEvents.containsKey(EventType.UPDATE)) {
                 var domainEvents = groupedEvents.get(EventType.UPDATE);
                 var list = getEntities(domainEvents);
                 mockRuleRepository.batchUpdate(list);
-                log.debug("Updated {} mock rules", list.size());
+                log.info("Updated {} mock rules", list.size());
             }
 
             if (groupedEvents.containsKey(EventType.DELETE)) {
                 var domainEvents = groupedEvents.get(EventType.DELETE);
                 var ids = getIds(domainEvents);
                 mockRuleRepository.batchDelete(ids);
-                log.debug("Updated {} mock rules", ids.size());
+                log.info("Updated {} mock rules", ids.size());
             }
         } catch (Exception e) {
             log.error("Failed to process mock rules batch", e);
@@ -113,14 +113,14 @@ public class EventConsumer {
                 var domainEvents = groupedEvents.get(EventType.CREATE);
                 var list = getEntities(domainEvents);
                 webhookRepository.batchInsert(list);
-                log.debug("Inserted {} webhooks", list.size());
+                log.info("Inserted {} webhooks", list.size());
             }
 
             if (groupedEvents.containsKey(EventType.UPDATE)) {
                 var domainEvents = groupedEvents.get(EventType.UPDATE);
                 var list = getEntities(domainEvents);
                 webhookRepository.batchUpdate(list);
-                log.debug("Updated {} webhooks", list.size());
+                log.info("Updated {} webhooks", list.size());
             }
 
             if (groupedEvents.containsKey(EventType.DELETE)) {

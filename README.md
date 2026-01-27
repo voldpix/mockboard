@@ -165,7 +165,7 @@ Perfect for debugging, monitoring webhooks, or watching integration tests in act
 #### Get the Latest Beta
 To ensure stability, clone the specific tag:
 ```shell
-git clone --branch 0.2-beta --single-branch https://github.com/voldpix/mockboard.git
+git clone --branch 0.3-beta --single-branch https://github.com/voldpix/mockboard.git
 
 # or get a current active branch (might be unstable or contain bugs)
 git clone https://github.com/voldpix/mockboard.git
@@ -198,14 +198,13 @@ docker compose up -d --build
 #### Configuration
 Most limits are configurable via [Constants.java](src/main/java/dev/mockboard/Constants.java). You can adjust them either through the docker compose file or by updating the class directly.
 
-#### Note on UI customization:
-The Vue frontend is currently built and bundled into Spring Boot (`src/main/resources/static`), which makes UI-specific changes a bit tricky. If you need to modify the UI:
+#### UI customization:
+The Vue frontend is built and bundled into Spring Boot (`src/main/resources/static`), which makes UI-specific changes a bit tricky. If you need to modify the UI:
 > Make your changes in the Vue app
 > 
 > Build: `npm run build` (outputs to Spring Boot resources - see [vite.config.js](src/main/frontend/vite.config.js))
 >
-> Run `docker compose up -d --build`
-<br><br>Note: I'm working on making this easier.
+> Run the app or follow the [Hosting Guide](#-hosting).
 
 ### Web version (mockboard.dev) - Coming soon
 A hosted version with hard limits and rate limiting.  I'll be running it on a cheap server and have no desire to invest in infrastructure.
