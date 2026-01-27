@@ -4,6 +4,7 @@ import {BoardModel} from "@/models/boardModel.js";
 import constants from "@/constants.js";
 import {MockRuleModel} from "@/models/mockRuleModel.js";
 import {WebhookModel} from "@/models/webhookModel.js";
+import {getConfig} from "@/config.js";
 
 export const useBoardStore = defineStore("boardStore", {
     state: () => ({
@@ -14,10 +15,12 @@ export const useBoardStore = defineStore("boardStore", {
     getters: {
         hasActiveSession: (state) => !!state.board && !!state.board.id && !!state.board.ownerToken,
         mockUsageCount: (state) => {
-            return `${state.mockRules.length} / ${constants.MAX_MOCKS}`;
+            const maxMocks = getConfig().validations.maxMocks
+            return `${state.mockRules.length} / ${maxMocks}`
         },
         canAddMoreMocks: (state) => {
-            return state.mockRules.length < constants.MAX_MOCKS
+            const maxMocks = getConfig().validations.maxMocks
+            return state.mockRules.length < maxMocks
         },
     },
     actions: {
@@ -25,17 +28,6 @@ export const useBoardStore = defineStore("boardStore", {
             this.board = null
             this.mockRules = []
             localStorage.removeItem(constants.BOARD_DATA)
-        },
-        async initializeConfigs() {
-            try {
-                const result = await boardService.getConfigs()
-                const configs = result.data
-                // todo: map to object
-            } catch (err) {
-                console.error("Unable to receive configs", err)
-                this.clearBoardStore()
-                return null
-            }
         },
         async restoreSession() {
             const localModel = BoardModel.fromLS(constants.BOARD_DATA)
@@ -174,8 +166,10 @@ export const useBoardStore = defineStore("boardStore", {
             }
 
             this.webhooks.unshift(webhookData)
-            if (this.webhooks.length > constants.MAX_WEBHOOKS) {
-                this.webhooks.splice(constants.MAX_WEBHOOKS);
+
+            const maxWebhooks = getConfig().validations.maxWebhooks;
+            if (this.webhooks.length > maxWebhooks) {
+                this.webhooks.splice(maxWebhooks);
             }
         }
     }

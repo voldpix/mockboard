@@ -1,9 +1,8 @@
 <script setup>
 import {onMounted, ref} from 'vue'
-import constants from "@/constants.js";
-import boardService from '@/services/boardService.js'
 import {useBoardStore} from "@/stores/boardStore.js";
 import {useToast} from '@/useToast.js'
+import {getConfig} from "@/config.js";
 
 const emit = defineEmits(['session-start', 'session-continue'])
 
@@ -16,20 +15,13 @@ const isReturningUser = ref(false)
 const capacityReached = ref(false)
 
 const pendingBoardData = ref(null)
-const activeBoards = ref(0)
-const maxBoards = ref(constants.MAX_ACTIVE_BOARDS)
+const activeBoards = ref(getConfig().boards.activeBoards)
+const maxBoards = ref(getConfig().boards.maxActiveBoards)
 
 onMounted(async () => {
     try {
-        try {
-            const stats = await boardService.getConfigs()
-            activeBoards.value = stats.activeBoards || 0
-
-            if (activeBoards.value >= maxBoards.value) {
-                capacityReached.value = true
-            }
-        } catch (statErr) {
-            console.warn("Stats fetch failed", statErr)
+        if (activeBoards.value >= maxBoards.value) {
+            capacityReached.value = true
         }
 
         const boardModel = await boardStore.restoreSession()
@@ -146,6 +138,11 @@ const reloadPage = () => {
                             @click="handleStartNew">
                             {{ isReturningUser ? 'Discard & Create New' : 'Create New Board' }}
                         </button>
+                    </div>
+                    <div class="bg-light rounded-2 text-center border border-secondary border-opacity-10">
+                        <p class="text-muted mt-3">
+                            Version: <span class="fw-bold">{{getConfig().app.version}}</span>
+                        </p>
                     </div>
 
 <!--                    For web version, commenting out for self host-->

@@ -3,9 +3,9 @@ import {computed, onMounted, reactive, ref, watch} from "vue";
 import {useToast} from "@/useToast.js";
 import {useBoardStore} from "@/stores/boardStore.js";
 import uiHelper from "@/helpers/uiHelper.js";
-import {getCharacterCount, getLimitStatus, validateMockRule} from "@/helpers/mockRuleValidator.js";
-import constants from "@/constants.js";
+import {getLimitStatus, validateMockRule} from "@/helpers/mockRuleValidator.js";
 import JsonEditor from "@/components/editor/JsonEditor.vue";
+import {getConfig} from "@/config.js";
 
 const props = defineProps({
     mode: {
@@ -36,10 +36,10 @@ const errors = ref({});
 const isLoading = ref(false);
 const jsonEditor = ref(null);
 
-const pathLimit = computed(() => getLimitStatus(formData.path?.length || 0, constants.VALIDATION.MAX_PATH_LENGTH));
+const pathLimit = computed(() => getLimitStatus(formData.path?.length || 0, getConfig().validations.maxMockPathLength));
 const headersCount = computed(() => {
     const nonEmpty = formData.headers.filter(h => h.key && h.key.trim() !== '').length;
-    return getLimitStatus(nonEmpty, constants.VALIDATION.MAX_HEADERS);
+    return getLimitStatus(nonEmpty, getConfig().validations.maxMockHeaders);
 });
 
 onMounted(() => {
@@ -190,14 +190,14 @@ const handleCancel = () => {
                                type="text"
                                class="form-control border-0 font-mono py-3"
                                placeholder="/api/v1/resource/*"
-                               :maxlength="constants.VALIDATION.MAX_PATH_LENGTH">
+                               :maxlength="getConfig().validations.maxMockPathLength">
                     </div>
                 </div>
                 <div v-if="errors.path" class="text-danger small mt-1">{{ errors.path }}</div>
                 <div class="d-flex justify-content-between align-items-center mt-2">
                     <div class="form-text text-muted small">
                         Use <span class="badge bg-light text-dark border font-mono">*</span> as wildcard.
-                        Max {{ constants.VALIDATION.MAX_WILDCARDS }} wildcards per path.
+                        Max {{ getConfig().validations.maxMockPathWildcards }} wildcards per path.
                     </div>
                     <small :class="['font-mono', pathLimit.isNearLimit ? 'text-warning' : 'text-muted']">
                         {{ pathLimit.current }}/{{ pathLimit.max }}
@@ -222,7 +222,7 @@ const handleCancel = () => {
                                        class="form-control form-control-sm border-0"
                                        :class="{'border border-danger': errors[`header_${index}`]}"
                                        placeholder="Header Key"
-                                       :maxlength="constants.VALIDATION.MAX_HEADER_KEY_LENGTH">
+                                       :maxlength="getConfig().validations.maxMockHeaderKeyLength">
                             </td>
                             <td class="py-2">
                                 <input v-model="header.value"
@@ -230,7 +230,7 @@ const handleCancel = () => {
                                        class="form-control form-control-sm border-0"
                                        :class="{'border border-danger': errors[`header_${index}`]}"
                                        placeholder="Value"
-                                       :maxlength="constants.VALIDATION.MAX_HEADER_VALUE_LENGTH">
+                                       :maxlength="getConfig().validations.maxMockHeaderValueLength">
                             </td>
                             <td class="text-center pt-2" style="width: 50px;">
                                 <button type="button" @click="removeHeader(index)" class="btn btn-link btn-sm text-danger p-0">
@@ -268,7 +268,7 @@ const handleCancel = () => {
                 <JsonEditor
                     ref="jsonEditor"
                     v-model="formData.body"
-                    :max-bytes="constants.VALIDATION.MAX_BODY_LENGTH"
+                    :max-bytes="getConfig().validations.maxMockBodyLength"
                     @valid="() => delete errors.body"
                     @invalid="(err) => errors.body = err"
                 />
