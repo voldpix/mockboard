@@ -165,7 +165,7 @@ Perfect for debugging, monitoring webhooks, or watching integration tests in act
 #### Get the Latest Beta
 To ensure stability, clone the specific tag:
 ```shell
-git clone --branch 0.2-beta --single-branch https://github.com/voldpix/mockboard.git
+git clone --branch 0.3-beta --single-branch https://github.com/voldpix/mockboard.git
 
 # or get a current active branch (might be unstable or contain bugs)
 git clone https://github.com/voldpix/mockboard.git
