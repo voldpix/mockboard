@@ -1,7 +1,6 @@
 package dev.mockboard.service;
 
 import dev.mockboard.Constants;
-import dev.mockboard.common.cache.MockRuleCache;
 import dev.mockboard.common.domain.dto.BoardDto;
 import dev.mockboard.common.domain.dto.MockRuleDto;
 import dev.mockboard.common.domain.response.IdResponse;
@@ -16,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.time.Instant;
@@ -31,9 +29,7 @@ public class MockRuleService {
     private final ModelMapper modelMapper;
     private final MockRuleValidator mockRuleValidator;
     private final MockRuleRepository mockRuleRepository;
-    private final MockRuleCache mockRuleCache;
 
-    @Transactional
     public IdResponse createMockRule(BoardDto boardDto, MockRuleDto mockRuleDto) {
         var existingMockRules = getMockRules(boardDto);
         if (existingMockRules.size() >= Constants.MAX_MOCK_RULES) {
@@ -49,7 +45,6 @@ public class MockRuleService {
         mockRuleDto.setBody(JsonUtils.minify(mockRuleDto.getBody()));
         mockRuleDto.setTimestamp(Instant.now());
         mockRuleDto.compilePattern();
-        mockRuleCache.addMockRule(boardDto.getId(), mockRuleDto);
 
         var mockRule = modelMapper.map(mockRuleDto, MockRule.class);
         mockRuleRepository.save(mockRule);
@@ -58,24 +53,17 @@ public class MockRuleService {
     }
 
     public List<MockRuleDto> getMockRules(BoardDto boardDto) {
-        var cachedMockRules = mockRuleCache.getMockRules(boardDto.getId());
-        if (CollectionUtils.isEmpty(cachedMockRules)) {
-            var persistedMockRules = mockRuleRepository.findByBoardIdAndDeletedFalseOrderByTimestampDesc(boardDto.getId());
-            if (CollectionUtils.isEmpty(persistedMockRules)) {
-                return Collections.emptyList();
-            }
-
-            var dtos = persistedMockRules.stream()
-                    .map(mockRule -> modelMapper.map(mockRule, MockRuleDto.class))
-                    .peek(MockRuleDto::compilePattern)
-                    .toList();
-            mockRuleCache.addMockRules(boardDto.getId(), dtos);
-            return dtos;
+        var persistedMockRules = mockRuleRepository.findByBoardIdAndDeletedFalseOrderByTimestampDesc(boardDto.getId());
+        if (CollectionUtils.isEmpty(persistedMockRules)) {
+            return Collections.emptyList();
         }
-        return cachedMockRules;
+
+        return persistedMockRules.stream()
+                .map(mockRule -> modelMapper.map(mockRule, MockRuleDto.class))
+                .peek(MockRuleDto::compilePattern)
+                .toList();
     }
 
-    @Transactional
     public IdResponse updateMockRule(BoardDto boardDto, String mockRuleId, MockRuleDto mockRuleDto) {
         log.debug("updating mock rule={} for boardId={}", mockRuleId, boardDto.getId());
         mockRuleValidator.validateMockRule(mockRuleDto);
@@ -98,12 +86,10 @@ public class MockRuleService {
         mockRule.markNotNew();
         mockRuleRepository.save(mockRule);
 
-        mockRuleCache.updateMockRule(boardDto.getId(), existingDto);
         log.info("Mock rule: {} updated for board: {}", mockRuleId, boardDto.getId());
         return new IdResponse(mockRuleId);
     }
 
-    @Transactional
     public void deleteMockRule(BoardDto boardDto, String mockRuleId) {
         log.info("soft delete mock rule={} for boardId={}", mockRuleId, boardDto.getId());
         var mockRules = getMockRules(boardDto);
@@ -113,7 +99,6 @@ public class MockRuleService {
             return;
         }
 
-        mockRuleCache.deleteMockRule(boardDto.getId(), mockRuleId);
         mockRuleRepository.markDeleted(mockRuleId);
         log.info("Mock rule marked as deleted: {}", mockRuleId);
     }

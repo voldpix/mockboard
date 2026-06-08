@@ -1,21 +1,63 @@
 package dev.mockboard.repository;
 
 import dev.mockboard.repository.model.Board;
-import org.springframework.data.jdbc.repository.query.Modifying;
-import org.springframework.data.jdbc.repository.query.Query;
-import org.springframework.data.repository.ListCrudRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.mapdb.DB;
+import org.mapdb.Serializer;
+import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentMap;
 
-public interface BoardRepository extends ListCrudRepository<Board, String> {
+@Slf4j
+@Repository
+public class BoardRepository {
 
-    Optional<Board> findByIdAndDeletedFalse(String id);
+    private final DB db;
+    private final ConcurrentMap<String, Board> boards;
 
-    @Modifying
-    @Query("UPDATE boards SET deleted = true WHERE id = :boardId")
-    void markDeleted(String boardId);
+    public BoardRepository(DB db) {
+        this.db = db;
+        this.boards = db
+                .hashMap("boards", Serializer.STRING, Serializer.JAVA)
+                .createOrOpen();
+    }
 
-    @Modifying
-    @Query("DELETE FROM boards WHERE deleted = true")
-    int hardDeleteMarkedBoards();
+    public synchronized Board save(Board board) {
+        board.markNotNew();
+        boards.put(board.getId(), board);
+        db.commit();
+        return board;
+    }
+
+    public Optional<Board> findByIdAndDeletedFalse(String id) {
+        return Optional.ofNullable(boards.get(id))
+                .filter(board -> !board.isDeleted());
+    }
+
+    public synchronized void markDeleted(String boardId) {
+        var board = boards.get(boardId);
+        if (board == null) {
+            return;
+        }
+
+        board.setDeleted(true);
+        boards.put(boardId, board);
+        db.commit();
+    }
+
+    public synchronized int hardDeleteMarkedBoards() {
+        var deletedIds = new ArrayList<String>();
+        boards.forEach((id, board) -> {
+            if (board.isDeleted()) {
+                deletedIds.add(id);
+            }
+        });
+        deletedIds.forEach(boards::remove);
+        if (!deletedIds.isEmpty()) {
+            db.commit();
+        }
+        return deletedIds.size();
+    }
 }
