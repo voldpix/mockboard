@@ -5,6 +5,7 @@ import dev.mockboard.common.exception.NotFoundException;
 import dev.mockboard.common.utils.IdGenerator;
 import dev.mockboard.common.utils.StringUtils;
 import dev.mockboard.repository.BoardRepository;
+import dev.mockboard.repository.MockRuleRepository;
 import dev.mockboard.repository.model.Board;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ public class BoardService {
 
     private final ModelMapper modelMapper;
     private final BoardRepository boardRepository;
+    private final MockRuleRepository mockRuleRepository;
 
     public BoardDto createBoard() {
         var boardId = IdGenerator.generateBoardId();
@@ -41,7 +43,7 @@ public class BoardService {
     }
 
     public BoardDto getBoardDto(String boardId) {
-        var boardOpt = boardRepository.findByIdAndDeletedFalse(boardId);
+        var boardOpt = boardRepository.findById(boardId);
         if (boardOpt.isEmpty()) {
             throw new NotFoundException("Board not found by id: " + boardId);
         }
@@ -50,7 +52,8 @@ public class BoardService {
     }
 
     public void deleteBoard(BoardDto boardDto) {
-        log.info("Soft delete board: {}", boardDto.getId());
-        boardRepository.markDeleted(boardDto.getId());
+        log.info("Delete board: {}", boardDto.getId());
+        mockRuleRepository.deleteByBoardId(boardDto.getId());
+        boardRepository.deleteById(boardDto.getId());
     }
 }

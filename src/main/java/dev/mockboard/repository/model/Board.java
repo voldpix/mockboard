@@ -12,10 +12,9 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false, of = {"id", "ownerToken"})
-public class Board extends PersistableEntity<String> implements Serializable {
+public class Board implements Serializable {
 
     private String id;
     private String ownerToken;
     private Instant timestamp;
-    private boolean deleted;
 }

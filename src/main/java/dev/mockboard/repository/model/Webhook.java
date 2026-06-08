@@ -12,7 +12,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false, of = {"id", "boardId", "timestamp"})
-public class Webhook extends PersistableEntity<String> implements Serializable {
+public class Webhook implements Serializable {
 
     private String id;
     private String boardId;

@@ -12,7 +12,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false, of = {"id", "boardId", "timestamp"})
-public class MockRule extends PersistableEntity<String> implements Serializable {
+public class MockRule implements Serializable {
 
     private String id;
     private String boardId;
@@ -23,5 +23,4 @@ public class MockRule extends PersistableEntity<String> implements Serializable 
     private int statusCode;
     private int delay; //ms
     private Instant timestamp;
-    private boolean deleted;
 }

@@ -53,7 +53,7 @@ public class MockRuleService {
     }
 
     public List<MockRuleDto> getMockRules(BoardDto boardDto) {
-        var persistedMockRules = mockRuleRepository.findByBoardIdAndDeletedFalseOrderByTimestampDesc(boardDto.getId());
+        var persistedMockRules = mockRuleRepository.findByBoardIdOrderByTimestampDesc(boardDto.getId());
         if (CollectionUtils.isEmpty(persistedMockRules)) {
             return Collections.emptyList();
         }
@@ -83,7 +83,6 @@ public class MockRuleService {
         existingDto.compilePattern();
 
         var mockRule = modelMapper.map(existingDto, MockRule.class);
-        mockRule.markNotNew();
         mockRuleRepository.save(mockRule);
 
         log.info("Mock rule: {} updated for board: {}", mockRuleId, boardDto.getId());
@@ -91,7 +90,7 @@ public class MockRuleService {
     }
 
     public void deleteMockRule(BoardDto boardDto, String mockRuleId) {
-        log.info("soft delete mock rule={} for boardId={}", mockRuleId, boardDto.getId());
+        log.info("Delete mock rule={} for boardId={}", mockRuleId, boardDto.getId());
         var mockRules = getMockRules(boardDto);
         var match = mockRules.stream().filter(m -> m.getId().equals(mockRuleId)).findFirst().orElse(null);
         if (match == null) {
@@ -99,7 +98,7 @@ public class MockRuleService {
             return;
         }
 
-        mockRuleRepository.markDeleted(mockRuleId);
-        log.info("Mock rule marked as deleted: {}", mockRuleId);
+        mockRuleRepository.deleteById(mockRuleId);
+        log.info("Mock rule deleted: {}", mockRuleId);
     }
 }
