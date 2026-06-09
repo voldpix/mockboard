@@ -21,4 +21,18 @@ public class AppSecurityService {
             throw new UnauthorizedException("Invalid app token");
         }
     }
+
+    public void validateAnyToken(String... requestTokens) {
+        for (var requestToken : requestTokens) {
+            if (requestToken == null || requestToken.isBlank()) {
+                continue;
+            }
+
+            if (appToken.equals(requestToken)) {
+                return;
+            }
+        }
+
+        throw new UnauthorizedException("Invalid app token");
+    }
 }

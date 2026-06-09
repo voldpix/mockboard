@@ -15,5 +15,7 @@ import java.time.Instant;
 public class BoardDto implements Serializable {
 
     private String id;
+    private String name;
     private Instant timestamp;
+    private int mockRuleCount;
 }

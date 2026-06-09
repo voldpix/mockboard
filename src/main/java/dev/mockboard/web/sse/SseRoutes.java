@@ -15,7 +15,7 @@ public class SseRoutes {
 
     public void subscribe(SseClient client) {
         var ctx = client.ctx();
-        appSecurityService.validateToken(ctx.header(Constants.APP_TOKEN_HEADER_KEY));
+        appSecurityService.validateAnyToken(ctx.header(Constants.APP_TOKEN_HEADER_KEY), ctx.queryParam("token"));
         var boardDto = boardService.getBoardDto(ctx.pathParam("boardId"));
         sseManager.subscribe(boardDto, client);
     }

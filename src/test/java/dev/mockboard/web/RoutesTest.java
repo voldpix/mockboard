@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -71,6 +72,47 @@ class RoutesTest {
 
             assertThat(response.code()).isEqualTo(200);
             assertThat(response.body().string()).contains("board-123");
+        });
+    }
+
+    @Test
+    void protectedBoardsCollectionRejectsMissingToken() {
+        var fixture = fixture();
+
+        JavalinTest.test(fixture.app(), (server, client) -> {
+            var response = client.get("/api/boards");
+
+            assertThat(response.code()).isEqualTo(401);
+            assertThat(response.body().string()).contains("Invalid app token");
+        });
+    }
+
+    @Test
+    void protectedBoardsCollectionReturnsPersistedBoards() {
+        var fixture = fixture();
+
+        JavalinTest.test(fixture.app(), (server, client) -> {
+            var response = client.get("/api/boards",
+                    request -> request.header(Constants.APP_TOKEN_HEADER_KEY, fixture.security().getAppToken()));
+
+            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.body().string()).contains("board-123");
+            assertThat(response.body().string()).contains("\"name\":\"Checkout\"");
+            assertThat(response.body().string()).contains("\"mockRuleCount\":2");
+        });
+    }
+
+    @Test
+    void updateBoardNameReturnsUpdatedBoard() {
+        var fixture = fixture();
+
+        JavalinTest.test(fixture.app(), (server, client) -> {
+            var response = client.put("/api/boards/board-123", Map.of("name", "Checkout"),
+                    request -> request.header(Constants.APP_TOKEN_HEADER_KEY, fixture.security().getAppToken()));
+
+            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.body().string()).contains("\"id\":\"board-123\"");
+            assertThat(response.body().string()).contains("\"name\":\"Checkout\"");
         });
     }
 
@@ -145,10 +187,27 @@ class RoutesTest {
             return board(boardId);
         }
 
+        @Override
+        public List<BoardDto> getBoards() {
+            return List.of(board("board-123"));
+        }
+
+        @Override
+        public BoardDto updateBoardName(String boardId, String name) {
+            return BoardDto.builder()
+                    .id(boardId)
+                    .name(name)
+                    .timestamp(Instant.now())
+                    .mockRuleCount(2)
+                    .build();
+        }
+
         private BoardDto board(String boardId) {
             return BoardDto.builder()
                     .id(boardId)
+                    .name("Checkout")
                     .timestamp(Instant.now())
+                    .mockRuleCount(2)
                     .build();
         }
     }

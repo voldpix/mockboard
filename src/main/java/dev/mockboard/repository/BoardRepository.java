@@ -18,6 +18,9 @@ public class BoardRepository {
     private static final Comparator<MockRule> MOCK_RULE_TIMESTAMP_DESC = Comparator
             .comparing(MockRule::getTimestamp, Comparator.nullsFirst(Comparator.naturalOrder()))
             .reversed();
+    private static final Comparator<Board> BOARD_TIMESTAMP_DESC = Comparator
+            .comparing(Board::getTimestamp, Comparator.nullsFirst(Comparator.naturalOrder()))
+            .reversed();
 
     private final DB db;
     private final ConcurrentMap<String, Board> boards;
@@ -43,6 +46,13 @@ public class BoardRepository {
 
     public synchronized Optional<Board> findById(String id) {
         return Optional.ofNullable(boards.get(id)).map(this::copyOf);
+    }
+
+    public synchronized List<Board> findAllOrderByTimestampDesc() {
+        return boards.values().stream()
+                .map(this::copyOf)
+                .sorted(BOARD_TIMESTAMP_DESC)
+                .toList();
     }
 
     public synchronized List<MockRule> findMockRulesByBoardIdOrderByTimestampDesc(String boardId) {
@@ -76,6 +86,7 @@ public class BoardRepository {
     private Board copyOf(Board board) {
         return Board.builder()
                 .id(board.getId())
+                .name(board.getName())
                 .timestamp(board.getTimestamp())
                 .mockRules(sortedRules(safeRules(board)))
                 .build();

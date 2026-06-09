@@ -11,6 +11,11 @@ public class AuthHandler {
     private final AppSecurityService appSecurityService;
 
     public void requireAppToken(Context ctx) {
+        if (ctx.path().endsWith("/stream")) {
+            appSecurityService.validateAnyToken(ctx.header(Constants.APP_TOKEN_HEADER_KEY), ctx.queryParam("token"));
+            return;
+        }
+
         appSecurityService.validateToken(ctx.header(Constants.APP_TOKEN_HEADER_KEY));
     }
 }

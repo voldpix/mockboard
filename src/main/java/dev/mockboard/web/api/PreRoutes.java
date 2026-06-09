@@ -24,13 +24,10 @@ public class PreRoutes {
                         "token", appSecurityService.getAppToken(),
                         "tokenHeader", Constants.APP_TOKEN_HEADER_KEY
                 ),
-                "boards", Map.of(
-                        "activeBoards", 0,
-                        "maxActiveBoards", Integer.MAX_VALUE
-                ),
                 "validations", Map.of(
                         "maxMocks", Constants.MAX_MOCK_RULES,
                         "maxWebhooks", Constants.MAX_WEBHOOKS,
+                        "maxBoardNameLength", Constants.MAX_BOARD_NAME_LENGTH,
                         "maxMockPathLength", Constants.MAX_PATH_LENGTH,
                         "maxMockPathWildcards", Constants.MAX_WILDCARDS,
                         "maxMockHeaders", Constants.MAX_HEADERS_SIZE,

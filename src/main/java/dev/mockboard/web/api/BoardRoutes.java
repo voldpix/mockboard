@@ -1,6 +1,7 @@
 package dev.mockboard.web.api;
 
 import dev.mockboard.common.domain.dto.MockRuleDto;
+import dev.mockboard.common.domain.dto.BoardUpdateDto;
 import dev.mockboard.common.exception.BadRequestException;
 import dev.mockboard.service.BoardService;
 import dev.mockboard.service.MockRuleService;
@@ -21,8 +22,17 @@ public class BoardRoutes {
         ctx.status(HttpStatus.CREATED).json(boardDto);
     }
 
+    public void getBoards(Context ctx) {
+        ctx.status(HttpStatus.OK).json(boardService.getBoards());
+    }
+
     public void getBoard(Context ctx) {
         var boardDto = boardService.getBoardDto(boardId(ctx));
+        ctx.status(HttpStatus.OK).json(boardDto);
+    }
+
+    public void updateBoard(Context ctx) {
+        var boardDto = boardService.updateBoardName(boardId(ctx), boardUpdate(ctx).getName());
         ctx.status(HttpStatus.OK).json(boardDto);
     }
 
@@ -70,6 +80,14 @@ public class BoardRoutes {
     private MockRuleDto mockRule(Context ctx) {
         try {
             return ctx.bodyAsClass(MockRuleDto.class);
+        } catch (Exception e) {
+            throw new BadRequestException("Invalid request body");
+        }
+    }
+
+    private BoardUpdateDto boardUpdate(Context ctx) {
+        try {
+            return ctx.bodyAsClass(BoardUpdateDto.class);
         } catch (Exception e) {
             throw new BadRequestException("Invalid request body");
         }

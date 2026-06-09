@@ -27,14 +27,17 @@ public class Routes {
     }
 
     public void register() {
+        ApiBuilder.before("/api/boards", authHandler::requireAppToken);
         ApiBuilder.before("/api/boards/*", authHandler::requireAppToken);
 
         ApiBuilder.path("/api/pre", () -> ApiBuilder.get(preRoutes::getPreBoards));
 
         ApiBuilder.path("/api/boards", () -> {
             ApiBuilder.post(boardRoutes::createBoard);
+            ApiBuilder.get(boardRoutes::getBoards);
             ApiBuilder.path("/{boardId}", () -> {
                 ApiBuilder.get(boardRoutes::getBoard);
+                ApiBuilder.put(boardRoutes::updateBoard);
                 ApiBuilder.delete(boardRoutes::deleteBoard);
                 ApiBuilder.sse("/stream", sseRoutes::subscribe);
                 ApiBuilder.path("/mocks", () -> {

@@ -37,6 +37,7 @@ public class SseManager {
         });
 
         client.onClose(cleanup(boardDto.getId(), client));
+        client.keepAlive();
 
         try {
             client.sendEvent(Constants.SSE_EMITTER_EVENT_PING, "established");
