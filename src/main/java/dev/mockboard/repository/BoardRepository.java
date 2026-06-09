@@ -3,12 +3,10 @@ package dev.mockboard.repository;
 import dev.mockboard.repository.model.Board;
 import lombok.extern.slf4j.Slf4j;
 import org.mapdb.DB;
-import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Slf4j
-@Repository
 public class BoardRepository extends MapDbRepository<Board> {
 
     public BoardRepository(DB db) {

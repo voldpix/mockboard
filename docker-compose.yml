@@ -4,8 +4,7 @@ services:
             context: .
             dockerfile: Dockerfile
         environment:
-          - SPRING_PROFILES_ACTIVE=default
-          - DB_PATH=jdbc:h2:file:/backend/data/mockboard_db;MODE=MySQL;AUTO_SERVER=TRUE;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
+          - MBD_STORE_PATH=/backend/data/mockboard.db
           # app config
           - MBD_MAX_ACTIVE_BOARDS_CHECK_ENABLED=false
           - MBD_MAX_ACTIVE_BOARDS=500

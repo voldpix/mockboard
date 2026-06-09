@@ -2,12 +2,10 @@ package dev.mockboard.repository;
 
 import dev.mockboard.repository.model.MockRule;
 import org.mapdb.DB;
-import org.springframework.stereotype.Repository;
 
 import java.util.Comparator;
 import java.util.List;
 
-@Repository
 public class MockRuleRepository extends MapDbRepository<MockRule> {
 
     public MockRuleRepository(DB db) {

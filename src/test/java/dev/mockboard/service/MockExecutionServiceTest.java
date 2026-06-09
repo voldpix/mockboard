@@ -1,13 +1,11 @@
 package dev.mockboard.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.mockboard.Constants;
 import dev.mockboard.common.domain.RequestMetadata;
 import dev.mockboard.common.domain.dto.BoardDto;
 import dev.mockboard.common.domain.dto.MockRuleDto;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.Collections;
 import java.util.List;
@@ -23,7 +21,8 @@ class MockExecutionServiceTest {
         assertThat(result.statusCode()).isEqualTo(200);
         assertThat(result.responseBody()).isEqualTo(Constants.DEFAULT_EXECUTION_RESPONSE);
         assertThat(result.matchingMockRuleDto()).isNull();
-        assertThat(result.headers().getFirst(HttpHeaders.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON_VALUE);
+        assertThat(result.headers().get(MockExecutionService.CONTENT_TYPE_HEADER))
+                .containsExactly(MockExecutionService.JSON_CONTENT_TYPE);
     }
 
     @Test
@@ -95,7 +94,7 @@ class MockExecutionServiceTest {
         private final List<MockRuleDto> rules;
 
         private StaticMockRuleService(List<MockRuleDto> rules) {
-            super(null, null, null);
+            super(null, null);
             this.rules = rules;
         }
 

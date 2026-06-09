@@ -1,18 +1,15 @@
 package dev.mockboard.common.validator;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.mockboard.Constants;
 import dev.mockboard.common.domain.dto.MockRuleDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
 import static dev.mockboard.Constants.*;
 
-@Component
 @RequiredArgsConstructor
 public class MockRuleValidator {
 
@@ -28,7 +25,7 @@ public class MockRuleValidator {
     }
 
     private void validatePath(String path) {
-        if (!StringUtils.hasLength(path)) {
+        if (path == null || path.isEmpty()) {
             throw new IllegalArgumentException("Path cannot be empty");
         }
 
@@ -71,14 +68,17 @@ public class MockRuleValidator {
         }
     }
 
-    private void validateStatusCode(int statusCode) {
+    private void validateStatusCode(Integer statusCode) {
+        if (statusCode == null) {
+            throw new IllegalArgumentException("Status code cannot be empty");
+        }
         if (statusCode < 100 || statusCode > 599) {
             throw new IllegalArgumentException("Invalid HTTP status code: " + statusCode);
         }
     }
 
     private void validateMethod(String method) {
-        if (!StringUtils.hasLength(method)) {
+        if (method == null || method.isEmpty()) {
             throw new IllegalArgumentException("HTTP method cannot be empty");
         }
 
@@ -106,7 +106,10 @@ public class MockRuleValidator {
         }
     }
 
-    private void validateDelay(long delay) {
+    private void validateDelay(Integer delay) {
+        if (delay == null) {
+            throw new IllegalArgumentException("Delay cannot be empty");
+        }
         if (delay < 0 || delay > Constants.MAX_ALLOWED_DELAY) {
             throw new IllegalArgumentException("Delay must be in the range 0..." + Constants.MAX_ALLOWED_DELAY);
         }

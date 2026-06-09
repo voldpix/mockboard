@@ -6,38 +6,38 @@ import dev.mockboard.common.domain.RequestMetadata;
 import dev.mockboard.common.domain.dto.BoardDto;
 import dev.mockboard.common.domain.dto.WebhookDto;
 import dev.mockboard.common.utils.IdGenerator;
-import dev.mockboard.config.sse.SseManager;
 import dev.mockboard.repository.model.Webhook;
+import dev.mockboard.web.sse.SseManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 @Slf4j
-@Service
 @RequiredArgsConstructor
 public class WebhookService {
 
-    private final ModelMapper modelMapper;
     private final SseManager sseManager;
+    private final ExecutorService webhookExecutor;
     private final ConcurrentMap<String, Webhook> webhooks = new ConcurrentHashMap<>();
 
     public List<WebhookDto> getWebhooks(BoardDto boardDto) {
         return findByBoardIdOrderByTimestampDesc(boardDto.getId()).stream()
-                .map(webhook -> modelMapper.map(webhook, WebhookDto.class))
+                .map(this::toDto)
                 .toList();
     }
 
-    @Async
     public void processWebhookAsync(String boardId, RequestMetadata metadata, MockExecutionResult result, long executionTime) {
+        webhookExecutor.submit(() -> processWebhook(boardId, metadata, result, executionTime));
+    }
+
+    private void processWebhook(String boardId, RequestMetadata metadata, MockExecutionResult result, long executionTime) {
         try {
             log.debug("Processing webhook async [{}] for key: {}", Thread.currentThread(), boardId);
             var webhookDto = new WebhookDto();
@@ -56,7 +56,7 @@ public class WebhookService {
             webhookDto.setContentType(metadata.contentType());
             webhookDto.setStatusCode(result.statusCode());
 
-            var webhook = modelMapper.map(webhookDto, Webhook.class);
+            var webhook = toModel(webhookDto);
             save(webhook);
             sseManager.broadcast(boardId, webhookDto);
         } catch (Exception e) {
@@ -88,5 +88,41 @@ public class WebhookService {
                 .skip(Constants.MAX_WEBHOOKS)
                 .map(Webhook::getId)
                 .forEach(webhooks::remove));
+    }
+
+    private Webhook toModel(WebhookDto dto) {
+        return Webhook.builder()
+                .id(dto.getId())
+                .boardId(dto.getBoardId())
+                .method(dto.getMethod())
+                .path(dto.getPath())
+                .fullUrl(dto.getFullUrl())
+                .queryParams(dto.getQueryParams())
+                .headers(dto.getHeaders())
+                .body(dto.getBody())
+                .contentType(dto.getContentType())
+                .statusCode(dto.getStatusCode())
+                .matched(dto.getMatched())
+                .timestamp(dto.getTimestamp())
+                .processingTimeMs(dto.getProcessingTimeMs())
+                .build();
+    }
+
+    private WebhookDto toDto(Webhook webhook) {
+        return WebhookDto.builder()
+                .id(webhook.getId())
+                .boardId(webhook.getBoardId())
+                .method(webhook.getMethod())
+                .path(webhook.getPath())
+                .fullUrl(webhook.getFullUrl())
+                .queryParams(webhook.getQueryParams())
+                .headers(webhook.getHeaders())
+                .body(webhook.getBody())
+                .contentType(webhook.getContentType())
+                .statusCode(webhook.getStatusCode())
+                .matched(webhook.isMatched())
+                .timestamp(webhook.getTimestamp())
+                .processingTimeMs(webhook.getProcessingTimeMs())
+                .build();
     }
 }

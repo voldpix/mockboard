@@ -13,9 +13,9 @@ public final class Constants {
 
     // defaults
     public static final int BOARD_ID_LENGTH = 24;
-    public static final int BOARD_OWNER_TOKEN_LENGTH = 48;
+    public static final int APP_TOKEN_LENGTH = 48;
     public static final String WILDCARD = "*";
-    public static final String OWNER_TOKEN_HEADER_KEY = "X-Owner-Token";
+    public static final String APP_TOKEN_HEADER_KEY = "X-App-Token";
     public static final String STORE_PATH = Env.get("MBD_STORE_PATH", "data/mockboard.db");
 
     // app limits

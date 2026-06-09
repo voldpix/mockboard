@@ -1,17 +1,16 @@
 package dev.mockboard.repository.model;
 
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
 import java.time.Instant;
 
 @Getter
 @Setter
-@SuperBuilder
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = false, of = {"id", "boardId", "timestamp"})
+@EqualsAndHashCode(of = {"id", "boardId", "timestamp"})
 public class Webhook implements Serializable {
 
     private String id;

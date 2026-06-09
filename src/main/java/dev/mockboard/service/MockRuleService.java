@@ -13,20 +13,15 @@ import dev.mockboard.repository.MockRuleRepository;
 import dev.mockboard.repository.model.MockRule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
 @Slf4j
-@Service
 @RequiredArgsConstructor
 public class MockRuleService {
 
-    private final ModelMapper modelMapper;
     private final MockRuleValidator mockRuleValidator;
     private final MockRuleRepository mockRuleRepository;
 
@@ -46,7 +41,7 @@ public class MockRuleService {
         mockRuleDto.setTimestamp(Instant.now());
         mockRuleDto.compilePattern();
 
-        var mockRule = modelMapper.map(mockRuleDto, MockRule.class);
+        var mockRule = toModel(mockRuleDto);
         mockRuleRepository.save(mockRule);
         log.info("Mock rule added bo board: {}", boardDto.getId());
         return new IdResponse(mockRule.getId());
@@ -54,12 +49,12 @@ public class MockRuleService {
 
     public List<MockRuleDto> getMockRules(BoardDto boardDto) {
         var persistedMockRules = mockRuleRepository.findByBoardIdOrderByTimestampDesc(boardDto.getId());
-        if (CollectionUtils.isEmpty(persistedMockRules)) {
+        if (persistedMockRules == null || persistedMockRules.isEmpty()) {
             return Collections.emptyList();
         }
 
         return persistedMockRules.stream()
-                .map(mockRule -> modelMapper.map(mockRule, MockRuleDto.class))
+                .map(this::toDto)
                 .peek(MockRuleDto::compilePattern)
                 .toList();
     }
@@ -82,7 +77,7 @@ public class MockRuleService {
         existingDto.setDelay(mockRuleDto.getDelay());
         existingDto.compilePattern();
 
-        var mockRule = modelMapper.map(existingDto, MockRule.class);
+        var mockRule = toModel(existingDto);
         mockRuleRepository.save(mockRule);
 
         log.info("Mock rule: {} updated for board: {}", mockRuleId, boardDto.getId());
@@ -100,5 +95,33 @@ public class MockRuleService {
 
         mockRuleRepository.deleteById(mockRuleId);
         log.info("Mock rule deleted: {}", mockRuleId);
+    }
+
+    private MockRule toModel(MockRuleDto dto) {
+        return MockRule.builder()
+                .id(dto.getId())
+                .boardId(dto.getBoardId())
+                .method(dto.getMethod())
+                .path(dto.getPath())
+                .headers(dto.getHeaders())
+                .body(dto.getBody())
+                .statusCode(dto.getStatusCode())
+                .delay(dto.getDelay())
+                .timestamp(dto.getTimestamp())
+                .build();
+    }
+
+    private MockRuleDto toDto(MockRule mockRule) {
+        return MockRuleDto.builder()
+                .id(mockRule.getId())
+                .boardId(mockRule.getBoardId())
+                .method(mockRule.getMethod())
+                .path(mockRule.getPath())
+                .headers(mockRule.getHeaders())
+                .body(mockRule.getBody())
+                .statusCode(mockRule.getStatusCode())
+                .delay(mockRule.getDelay())
+                .timestamp(mockRule.getTimestamp())
+                .build();
     }
 }

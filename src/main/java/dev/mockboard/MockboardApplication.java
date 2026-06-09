@@ -1,16 +1,14 @@
 package dev.mockboard;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import dev.mockboard.app.MockboardApp;
 
 import java.util.TimeZone;
 
-@SpringBootApplication
 public class MockboardApplication {
 
     public static void main(String[] args) {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-        SpringApplication.run(MockboardApplication.class, args);
+        MockboardApp.create().start(MockboardApp.port());
     }
 
 }

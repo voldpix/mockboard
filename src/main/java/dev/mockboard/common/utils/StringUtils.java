@@ -5,8 +5,6 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 
-import static org.springframework.util.StringUtils.countOccurrencesOf;
-
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class StringUtils {
 
@@ -24,6 +22,12 @@ public final class StringUtils {
 
     public static int countWildcards(String path) {
         if (path == null) return 0;
-        return countOccurrencesOf(path, Constants.WILDCARD);
+        int count = 0;
+        for (int i = 0; i < path.length(); i++) {
+            if (path.charAt(i) == Constants.WILDCARD.charAt(0)) {
+                count++;
+            }
+        }
+        return count;
     }
 }

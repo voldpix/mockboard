@@ -1,10 +1,12 @@
 package dev.mockboard.common.domain;
 
 import dev.mockboard.common.domain.dto.MockRuleDto;
-import org.springframework.http.HttpHeaders;
+
+import java.util.List;
+import java.util.Map;
 
 public record MockExecutionResult(
         MockRuleDto matchingMockRuleDto,
-        HttpHeaders headers,
+        Map<String, List<String>> headers,
         String responseBody,
         int statusCode) {}

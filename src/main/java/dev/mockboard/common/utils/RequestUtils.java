@@ -1,14 +1,12 @@
 package dev.mockboard.common.utils;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RequestUtils {
 
-    public static String extractMockPath(String boardId, HttpServletRequest request) {
-        var fullPath = request.getRequestURI();
+    public static String extractMockPath(String boardId, String fullPath) {
         var prefix = "/m/" + boardId;
 
         if (fullPath.startsWith(prefix)) {

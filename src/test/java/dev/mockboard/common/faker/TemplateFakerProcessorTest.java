@@ -7,6 +7,10 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TemplateFakerProcessorTest {
 
@@ -15,12 +19,11 @@ class TemplateFakerProcessorTest {
     @Test
     void replaceValidTokens() {
         var input = "{\"name\": \"{{user.fullName}}\", \"email\": \"{{user.email}}\"}";
-        var result = engine.applyFaker(input);
-        assertThat(result)
-                .doesNotContain("{{user.fullName}}")
-                .doesNotContain("{{user.email}}")
-                .contains("\"name\": \"")
-                .contains("@");
+        var result = requireString(engine.applyFaker(input));
+        assertDoesNotContain(result, "{{user.fullName}}");
+        assertDoesNotContain(result, "{{user.email}}");
+        assertContains(result, "\"name\": \"");
+        assertContains(result, "@");
     }
 
     @ParameterizedTest
@@ -31,12 +34,11 @@ class TemplateFakerProcessorTest {
             "{{       user.fullName       }}"
     })
     void handleWhitespaces(String token) {
-        var result = engine.applyFaker(token);
+        var result = requireString(engine.applyFaker(token));
 
-        assertThat(result)
-                .doesNotContain("{{")
-                .doesNotContain("unknown")
-                .isNotEmpty();
+        assertDoesNotContain(result, "{{");
+        assertDoesNotContain(result, "unknown");
+        assertTrue(!result.isEmpty());
     }
 
     @Test
@@ -78,11 +80,10 @@ class TemplateFakerProcessorTest {
     @Test
     void multipleIdenticalTokens() {
         var input = "{{user.fullName}}{{user.fullName}}";
-        var result = engine.applyFaker(input);
-        assertThat(result)
-                .doesNotContain("{")
-                .doesNotContain("}")
-                .doesNotContain("unknown");
+        var result = requireString(engine.applyFaker(input));
+        assertDoesNotContain(result, "{");
+        assertDoesNotContain(result, "}");
+        assertDoesNotContain(result, "unknown");
     }
 
     @Test
@@ -96,18 +97,32 @@ class TemplateFakerProcessorTest {
     @Test
     void systemTemplates() {
         var input = "{{system.int}}, {{system.long}}, {{system.double}}, {{system.bool}}, {{system.uuid}}";
-        var result = engine.applyFaker(input);
-        assertThat(result)
-                .doesNotContain("{{")
-                .doesNotContain("}}")
-                .doesNotContain("unknown");
+        var result = requireString(engine.applyFaker(input));
+        assertDoesNotContain(result, "{{");
+        assertDoesNotContain(result, "}}");
+        assertDoesNotContain(result, "unknown");
 
         var parts = result.split(",");
         assertThat(parts).hasSize(5);
-        assertThat(Integer.parseInt(parts[0].trim())).isBetween(0, 10000).isInstanceOf(Integer.class);
-        assertThat(Long.parseLong(parts[1].trim())).isInstanceOf(Long.class);
-        assertThat(Double.parseDouble(parts[2].trim())).isInstanceOf(Double.class);
-        assertThat(parts[3].trim()).matches("true|false");
-        assertThat(UUID.fromString(parts[4].trim())).isNotNull();
+        
+        var intValue = Integer.parseInt(parts[0].trim());
+        assertTrue(intValue >= 0 && intValue <= 10000);
+        assertInstanceOf(Integer.class, intValue);
+        assertInstanceOf(Long.class, Long.parseLong(parts[1].trim()));
+        assertInstanceOf(Double.class, Double.parseDouble(parts[2].trim()));
+        assertTrue(parts[3].trim().matches("true|false"));
+        assertNotNull(UUID.fromString(parts[4].trim()));
+    }
+
+    private void assertContains(String actual, String expected) {
+        assertTrue(actual.contains(expected));
+    }
+
+    private void assertDoesNotContain(String actual, String unexpected) {
+        assertFalse(actual.contains(unexpected));
+    }
+
+    private String requireString(String actual) {
+        return java.util.Objects.requireNonNull(actual);
     }
 }

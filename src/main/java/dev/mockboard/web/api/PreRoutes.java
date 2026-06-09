@@ -1,27 +1,28 @@
 package dev.mockboard.web.api;
 
 import dev.mockboard.Constants;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import dev.mockboard.service.AppSecurityService;
+import io.javalin.http.Context;
+import io.javalin.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
 
-@RestController
-@RequestMapping("/api/pre")
-public class PreBoardController {
+@RequiredArgsConstructor
+public class PreRoutes {
 
-    @GetMapping
-    public ResponseEntity<Map<String, Object>> getPreBoards() {
-        return new ResponseEntity<>(getAppConfigs(), HttpStatus.OK);
+    private final AppSecurityService appSecurityService;
+
+    public void getPreBoards(Context ctx) {
+        ctx.status(HttpStatus.OK).json(getAppConfigs());
     }
 
     private Map<String, Object> getAppConfigs() {
         return Map.of(
                 "app", Map.of(
-                        "version", Constants.APP_VERSION
+                        "version", Constants.APP_VERSION,
+                        "token", appSecurityService.getAppToken(),
+                        "tokenHeader", Constants.APP_TOKEN_HEADER_KEY
                 ),
                 "boards", Map.of(
                         "activeBoards", 0,
