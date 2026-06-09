@@ -3,7 +3,7 @@
 </script>
 
 <footer class="app-footer">
-  <span>{$config?.app?.version || '0.4-beta'}</span>
+  <span>{$config?.app?.version || '0.4.1-beta'}</span>
   <span aria-hidden="true">/</span>
   <span>
     2026
