@@ -1,7 +1,6 @@
 package dev.mockboard.app;
 
 import dev.mockboard.web.sse.SseManager;
-import io.javalin.Javalin;
 import lombok.extern.slf4j.Slf4j;
 import org.mapdb.DB;
 
@@ -9,7 +8,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
 
 @Slf4j
 public class AppLifecycle {
@@ -30,11 +28,11 @@ public class AppLifecycle {
         this.db = db;
     }
 
-    public void registerShutdownHook(Supplier<Javalin> appSupplier) {
+    public void registerShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            log.info("JVM shutdown requested");
-            stopApp(appSupplier);
+            log.info("Mockboard shutdown requested");
             closeResources();
+            log.info("Mockboard shutdown complete");
         }, "mockboard-shutdown"));
     }
 
@@ -47,18 +45,6 @@ public class AppLifecycle {
         shutdownScheduler();
         shutdownExecutor();
         closeDb();
-    }
-
-    private void stopApp(Supplier<Javalin> appSupplier) {
-        try {
-            var app = appSupplier.get();
-            if (app != null) {
-                log.info("Stopping Javalin");
-                app.stop();
-            }
-        } catch (Exception e) {
-            log.warn("Unable to stop Javalin cleanly: {}", e.getMessage(), e);
-        }
     }
 
     private void closeSse() {

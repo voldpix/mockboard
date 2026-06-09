@@ -35,7 +35,6 @@ import java.io.File;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 public final class MockboardApp {
@@ -69,7 +68,6 @@ public final class MockboardApp {
         );
 
         var lifecycle = new AppLifecycle(sseManager, scheduler, webhookExecutor, db);
-        var appRef = new AtomicReference<Javalin>();
 
         var boardRoutes = new BoardRoutes(boardService, mockRuleService, webhookService);
         var preRoutes = new PreRoutes(appSecurityService);
@@ -103,8 +101,7 @@ public final class MockboardApp {
             ErrorHandlers.register(config.routes);
         });
 
-        appRef.set(app);
-        lifecycle.registerShutdownHook(appRef::get);
+        lifecycle.registerShutdownHook();
         return app;
     }
 
