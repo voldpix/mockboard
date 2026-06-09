@@ -5,7 +5,7 @@
 
     <groupId>dev.mockboard</groupId>
     <artifactId>mockboard</artifactId>
-    <version>0.4-beta</version>
+    <version>0.4.1-beta</version>
     <name>mockboard</name>
 
     <properties>
@@ -14,14 +14,15 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <javalin.version>7.2.2</javalin.version>
-        <junit.version>5.14.1</junit.version>
-        <assertj.version>3.26.3</assertj.version>
-        <versions-maven-plugin.version>2.20.1</versions-maven-plugin.version>
-        <maven-shade-plugin.version>3.6.1</maven-shade-plugin.version>
-        <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
+        <junit.version>6.1.0</junit.version>
+        <assertj.version>4.0.0-M1</assertj.version>
+        <lombok.version>1.18.46</lombok.version>
+        <versions-maven-plugin.version>2.21.0</versions-maven-plugin.version>
+        <maven-shade-plugin.version>3.6.2</maven-shade-plugin.version>
+        <maven-surefire-plugin.version>3.6.0-M1</maven-surefire-plugin.version>
 
         <commons-text.version>1.15.0</commons-text.version>
-        <datafaker.version>2.5.3</datafaker.version>
+        <datafaker.version>2.5.4</datafaker.version>
         <mapdb.version>3.1.0</mapdb.version>
         <ulid.version>8.3.0</ulid.version>
         <awaitility.version>4.3.0</awaitility.version>
@@ -36,7 +37,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.42</version>
+            <version>${lombok.version}</version>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -87,14 +88,14 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.14.1</version>
+                <version>3.15.0</version>
                 <configuration>
                     <release>${java.version}</release>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <version>1.18.42</version>
+                            <version>${lombok.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
