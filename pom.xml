@@ -5,7 +5,7 @@
 
     <groupId>dev.mockboard</groupId>
     <artifactId>mockboard</artifactId>
-    <version>0.3-beta</version>
+    <version>0.4-beta</version>
     <name>mockboard</name>
 
     <properties>

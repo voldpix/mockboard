@@ -120,7 +120,7 @@ dev/scripts/run_jar.sh
 Manual run after building:
 
 ```shell
-java -jar target/mockboard-0.3-beta.jar
+java -jar target/mockboard-0.4-beta.jar
 ```
 
 Default URL:
