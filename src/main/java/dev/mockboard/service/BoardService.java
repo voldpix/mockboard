@@ -4,7 +4,6 @@ import dev.mockboard.common.domain.dto.BoardDto;
 import dev.mockboard.common.exception.NotFoundException;
 import dev.mockboard.common.utils.IdGenerator;
 import dev.mockboard.repository.BoardRepository;
-import dev.mockboard.repository.MockRuleRepository;
 import dev.mockboard.repository.model.Board;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +15,6 @@ import java.time.Instant;
 public class BoardService {
 
     private final BoardRepository boardRepository;
-    private final MockRuleRepository mockRuleRepository;
 
     public BoardDto createBoard() {
         var boardId = IdGenerator.generateBoardId();
@@ -42,7 +40,6 @@ public class BoardService {
 
     public void deleteBoard(BoardDto boardDto) {
         log.info("Delete board: {}", boardDto.getId());
-        mockRuleRepository.deleteByBoardId(boardDto.getId());
         boardRepository.deleteById(boardDto.getId());
     }
 

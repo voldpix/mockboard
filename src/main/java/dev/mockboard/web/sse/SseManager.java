@@ -22,7 +22,7 @@ public class SseManager {
                     ? new CopyOnWriteArrayList<SseClient>()
                     : clients;
 
-            if (newList.size() >= Constants.MAX_SSE_EMITTERS_PER_BOARD) {
+            if (!newList.isEmpty()) {
                 try {
                     var oldest = newList.removeFirst();
                     oldest.close();
@@ -89,12 +89,10 @@ public class SseManager {
         log.info("Shutting down SSE service: closing {} active boards", webhookClients.size());
 
         webhookClients.forEach((key, clients) -> clients.forEach(client -> {
-            try {
+            try (client) {
                 client.sendEvent(Constants.SSE_EMITTER_EVENT_SHUTDOWN, "shutdown");
             } catch (Exception e) {
                 log.debug("Failed to send SSE shutdown event: {}", e.getMessage(), e);
-            } finally {
-                client.close();
             }
         }));
         webhookClients.clear();

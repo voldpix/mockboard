@@ -9,7 +9,6 @@ import dev.mockboard.common.faker.TemplateFakerProcessor;
 import dev.mockboard.common.validator.MockRuleValidator;
 import dev.mockboard.common.validator.RequestMetadataValidator;
 import dev.mockboard.repository.BoardRepository;
-import dev.mockboard.repository.MockRuleRepository;
 import dev.mockboard.service.AppSecurityService;
 import dev.mockboard.service.BoardService;
 import dev.mockboard.service.MockExecutionService;
@@ -27,6 +26,7 @@ import io.javalin.Javalin;
 import io.javalin.http.ContentType;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.json.JavalinJackson;
+import io.javalin.plugin.bundled.CorsPluginConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
@@ -50,14 +50,13 @@ public final class MockboardApp {
         var webhookExecutor = Executors.newVirtualThreadPerTaskExecutor();
 
         var boardRepository = new BoardRepository(db);
-        var mockRuleRepository = new MockRuleRepository(db);
         var appSecurityService = new AppSecurityService();
         var mockRuleValidator = new MockRuleValidator(objectMapper);
         var requestMetadataValidator = new RequestMetadataValidator(objectMapper);
         var templateFakerProcessor = new TemplateFakerProcessor();
         var templateFakerService = new TemplateFakerService(templateFakerProcessor);
-        var boardService = new BoardService(boardRepository, mockRuleRepository);
-        var mockRuleService = new MockRuleService(mockRuleValidator, mockRuleRepository);
+        var boardService = new BoardService(boardRepository);
+        var mockRuleService = new MockRuleService(mockRuleValidator, boardRepository);
         var sseManager = new SseManager();
         var mockExecutionService = new MockExecutionService(objectMapper, mockRuleService, templateFakerService);
         var webhookService = new WebhookService(sseManager, webhookExecutor);
@@ -79,10 +78,13 @@ public final class MockboardApp {
         var routes = new Routes(appSecurityService, boardRoutes, preRoutes, mockExecutionRoutes, sseRoutes);
 
         var app = Javalin.create(config -> {
+            config.startup.showJavalinBanner = false;
+
             config.jsonMapper(new JavalinJackson(objectMapper, false));
+            config.concurrency.useVirtualThreads = true;
             config.http.defaultContentType = ContentType.JSON;
             config.http.maxRequestSize = Constants.MAX_BODY_LENGTH + 1024L;
-            config.bundledPlugins.enableCors(cors -> cors.addRule(rule -> rule.anyHost()));
+            config.bundledPlugins.enableCors(cors -> cors.addRule(CorsPluginConfig.CorsRule::anyHost));
             config.staticFiles.add(staticFiles -> {
                 staticFiles.hostedPath = "/";
                 staticFiles.directory = "/static";

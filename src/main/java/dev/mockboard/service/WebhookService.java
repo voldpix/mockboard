@@ -33,6 +33,10 @@ public class WebhookService {
                 .toList();
     }
 
+    public void deleteByBoardId(String boardId) {
+        webhooks.values().removeIf(webhook -> boardId.equals(webhook.getBoardId()));
+    }
+
     public void processWebhookAsync(String boardId, RequestMetadata metadata, MockExecutionResult result, long executionTime) {
         webhookExecutor.submit(() -> processWebhook(boardId, metadata, result, executionTime));
     }

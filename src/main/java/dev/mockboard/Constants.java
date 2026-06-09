@@ -36,8 +36,6 @@ public final class Constants {
     public static final int MAX_ALLOWED_DELAY = Env.getInt("MBD_VALIDATION_MOCK_MAX_ALLOWED_DELAY", 10_000);
 
     // sse
-    public static final int MAX_SSE_EMITTERS_PER_BOARD = 1;
-    public static final long SSE_EMITTER_TTL = 1_800_000L; // 30min
     public static final long SSE_EMITTER_HEARTBEAT_RATE = 30_000L; // 30sec
     public static final String SSE_EMITTER_EVENT_WEBHOOK = "webhook-event";
     public static final String SSE_EMITTER_EVENT_PING = "ping";
@@ -45,5 +43,4 @@ public final class Constants {
 
     // default messages
     public static final String DEFAULT_EXECUTION_RESPONSE = "{\"message\": \"Hello from Mockboard.dev\"}";
-    public static final String DEFAULT_WEBHOOK_PARSING_ERROR_RESPONSE = "{\"message\": \"Unable to read request body\"}";
 }

@@ -29,6 +29,7 @@ public class BoardRoutes {
     public void deleteBoard(Context ctx) {
         var boardDto = boardService.getBoardDto(boardId(ctx));
         boardService.deleteBoard(boardDto);
+        webhookService.deleteByBoardId(boardDto.getId());
         ctx.status(HttpStatus.NO_CONTENT);
     }
 

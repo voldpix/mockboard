@@ -2,9 +2,7 @@ package dev.mockboard.web;
 
 import dev.mockboard.common.domain.ExceptionResponse;
 import dev.mockboard.common.exception.BadRequestException;
-import dev.mockboard.common.exception.ForbiddenException;
 import dev.mockboard.common.exception.NotFoundException;
-import dev.mockboard.common.exception.RateLimitExceededException;
 import dev.mockboard.common.exception.UnauthorizedException;
 import io.javalin.config.RoutesConfig;
 import io.javalin.http.HttpStatus;
@@ -22,8 +20,6 @@ public final class ErrorHandlers {
         routes.exception(NotFoundException.class, (ex, ctx) -> error(ctx, HttpStatus.NOT_FOUND, ex.getMessage()));
         routes.exception(BadRequestException.class, (ex, ctx) -> error(ctx, HttpStatus.BAD_REQUEST, ex.getMessage()));
         routes.exception(UnauthorizedException.class, (ex, ctx) -> error(ctx, HttpStatus.UNAUTHORIZED, ex.getMessage()));
-        routes.exception(ForbiddenException.class, (ex, ctx) -> error(ctx, HttpStatus.FORBIDDEN, ex.getMessage()));
-        routes.exception(RateLimitExceededException.class, (ex, ctx) -> error(ctx, HttpStatus.TOO_MANY_REQUESTS, ex.getMessage()));
         routes.exception(IllegalArgumentException.class, (ex, ctx) -> error(ctx, HttpStatus.BAD_REQUEST, ex.getMessage()));
         routes.exception(Exception.class, (ex, ctx) -> {
             log.error("Unhandled request failure", ex);

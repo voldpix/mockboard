@@ -129,7 +129,7 @@ class RoutesTest {
 
     private static class StubBoardService extends BoardService {
         private StubBoardService() {
-            super(null, null);
+            super(null);
         }
 
         @Override

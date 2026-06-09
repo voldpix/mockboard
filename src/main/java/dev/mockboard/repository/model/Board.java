@@ -4,6 +4,8 @@ import lombok.*;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.LinkedList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -13,6 +15,10 @@ import java.time.Instant;
 @EqualsAndHashCode(of = "id")
 public class Board implements Serializable {
 
+    private static final long serialVersionUID = 7751465435236789856L;
+
     private String id;
     private Instant timestamp;
+    @Builder.Default
+    private List<MockRule> mockRules = new LinkedList<>();
 }

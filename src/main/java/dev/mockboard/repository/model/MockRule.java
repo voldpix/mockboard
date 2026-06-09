@@ -13,6 +13,8 @@ import java.time.Instant;
 @EqualsAndHashCode(of = {"id", "boardId", "timestamp"})
 public class MockRule implements Serializable {
 
+    private static final long serialVersionUID = -1908186771626053328L;
+
     private String id;
     private String boardId;
     private String method;
