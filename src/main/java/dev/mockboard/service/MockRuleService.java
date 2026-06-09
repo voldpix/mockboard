@@ -1,7 +1,6 @@
 package dev.mockboard.service;
 
 import dev.mockboard.Constants;
-import dev.mockboard.common.cache.MockRuleCache;
 import dev.mockboard.common.domain.dto.BoardDto;
 import dev.mockboard.common.domain.dto.MockRuleDto;
 import dev.mockboard.common.domain.response.IdResponse;
@@ -10,36 +9,26 @@ import dev.mockboard.common.exception.NotFoundException;
 import dev.mockboard.common.utils.IdGenerator;
 import dev.mockboard.common.utils.JsonUtils;
 import dev.mockboard.common.validator.MockRuleValidator;
-import dev.mockboard.repository.MockRuleRepository;
+import dev.mockboard.repository.BoardRepository;
+import dev.mockboard.repository.model.Board;
 import dev.mockboard.repository.model.MockRule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 import java.time.Instant;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
-@Service
 @RequiredArgsConstructor
 public class MockRuleService {
 
-    private final ModelMapper modelMapper;
     private final MockRuleValidator mockRuleValidator;
-    private final MockRuleRepository mockRuleRepository;
-    private final MockRuleCache mockRuleCache;
+    private final BoardRepository boardRepository;
 
-    @Transactional
     public IdResponse createMockRule(BoardDto boardDto, MockRuleDto mockRuleDto) {
-        var existingMockRules = getMockRules(boardDto);
-        if (existingMockRules.size() >= Constants.MAX_MOCK_RULES) {
-            throw new BadRequestException("Maximum number of mock rules exceeded. Allowed: " + Constants.MAX_MOCK_RULES);
-        }
-
         log.debug("creating mock rule for boardId={}", boardDto.getId());
         mockRuleValidator.validateMockRule(mockRuleDto);
 
@@ -49,72 +38,124 @@ public class MockRuleService {
         mockRuleDto.setBody(JsonUtils.minify(mockRuleDto.getBody()));
         mockRuleDto.setTimestamp(Instant.now());
         mockRuleDto.compilePattern();
-        mockRuleCache.addMockRule(boardDto.getId(), mockRuleDto);
 
-        var mockRule = modelMapper.map(mockRuleDto, MockRule.class);
-        mockRuleRepository.save(mockRule);
-        log.info("Mock rule added bo board: {}", boardDto.getId());
+        var mockRule = toModel(mockRuleDto);
+        var updatedBoard = boardRepository.updateById(boardDto.getId(), board -> {
+            var rules = mutableRules(board);
+            if (rules.size() >= Constants.MAX_MOCK_RULES) {
+                throw new BadRequestException("Maximum number of mock rules exceeded. Allowed: " + Constants.MAX_MOCK_RULES);
+            }
+
+            rules.add(mockRule);
+            board.setMockRules(rules);
+            return board;
+        });
+        if (updatedBoard.isEmpty()) {
+            throw new NotFoundException("Board not found by id: " + boardDto.getId());
+        }
+
+        log.info("Mock rule added to board: {}", boardDto.getId());
         return new IdResponse(mockRule.getId());
     }
 
     public List<MockRuleDto> getMockRules(BoardDto boardDto) {
-        var cachedMockRules = mockRuleCache.getMockRules(boardDto.getId());
-        if (CollectionUtils.isEmpty(cachedMockRules)) {
-            var persistedMockRules = mockRuleRepository.findByBoardIdAndDeletedFalseOrderByTimestampDesc(boardDto.getId());
-            if (CollectionUtils.isEmpty(persistedMockRules)) {
-                return Collections.emptyList();
-            }
-
-            var dtos = persistedMockRules.stream()
-                    .map(mockRule -> modelMapper.map(mockRule, MockRuleDto.class))
-                    .peek(MockRuleDto::compilePattern)
-                    .toList();
-            mockRuleCache.addMockRules(boardDto.getId(), dtos);
-            return dtos;
+        var persistedMockRules = boardRepository.findMockRulesByBoardIdOrderByTimestampDesc(boardDto.getId());
+        if (persistedMockRules == null || persistedMockRules.isEmpty()) {
+            return Collections.emptyList();
         }
-        return cachedMockRules;
+
+        return persistedMockRules.stream()
+                .map(this::toDto)
+                .peek(MockRuleDto::compilePattern)
+                .toList();
     }
 
-    @Transactional
     public IdResponse updateMockRule(BoardDto boardDto, String mockRuleId, MockRuleDto mockRuleDto) {
         log.debug("updating mock rule={} for boardId={}", mockRuleId, boardDto.getId());
         mockRuleValidator.validateMockRule(mockRuleDto);
 
-        var mockRuleDtos = getMockRules(boardDto);
-        var existingDto = mockRuleDtos.stream()
-                .filter(m -> m.getId().equals(mockRuleId))
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("Mock rule not found for id: " + mockRuleId));
+        var updatedBoard = boardRepository.updateById(boardDto.getId(), board -> {
+            var rules = mutableRules(board);
+            for (var i = 0; i < rules.size(); i++) {
+                var existing = rules.get(i);
+                if (!existing.getId().equals(mockRuleId)) {
+                    continue;
+                }
 
-        existingDto.setMethod(mockRuleDto.getMethod());
-        existingDto.setPath(mockRuleDto.getPath());
-        existingDto.setHeaders(JsonUtils.minify(mockRuleDto.getHeaders()));
-        existingDto.setBody(JsonUtils.minify(mockRuleDto.getBody()));
-        existingDto.setStatusCode(mockRuleDto.getStatusCode());
-        existingDto.setDelay(mockRuleDto.getDelay());
-        existingDto.compilePattern();
+                rules.set(i, MockRule.builder()
+                        .id(existing.getId())
+                        .boardId(existing.getBoardId())
+                        .method(mockRuleDto.getMethod())
+                        .path(mockRuleDto.getPath())
+                        .headers(JsonUtils.minify(mockRuleDto.getHeaders()))
+                        .body(JsonUtils.minify(mockRuleDto.getBody()))
+                        .statusCode(mockRuleDto.getStatusCode())
+                        .delay(mockRuleDto.getDelay())
+                        .timestamp(existing.getTimestamp())
+                        .build());
+                board.setMockRules(rules);
+                return board;
+            }
 
-        var mockRule = modelMapper.map(existingDto, MockRule.class);
-        mockRule.markNotNew();
-        mockRuleRepository.save(mockRule);
+            throw new NotFoundException("Mock rule not found for id: " + mockRuleId);
+        });
+        if (updatedBoard.isEmpty()) {
+            throw new NotFoundException("Board not found by id: " + boardDto.getId());
+        }
 
-        mockRuleCache.updateMockRule(boardDto.getId(), existingDto);
         log.info("Mock rule: {} updated for board: {}", mockRuleId, boardDto.getId());
         return new IdResponse(mockRuleId);
     }
 
-    @Transactional
     public void deleteMockRule(BoardDto boardDto, String mockRuleId) {
-        log.info("soft delete mock rule={} for boardId={}", mockRuleId, boardDto.getId());
-        var mockRules = getMockRules(boardDto);
-        var match = mockRules.stream().filter(m -> m.getId().equals(mockRuleId)).findFirst().orElse(null);
-        if (match == null) {
+        log.info("Delete mock rule={} for boardId={}", mockRuleId, boardDto.getId());
+        var removed = new AtomicBoolean(false);
+        var updatedBoard = boardRepository.updateById(boardDto.getId(), board -> {
+            var rules = mutableRules(board);
+            removed.set(rules.removeIf(rule -> rule.getId().equals(mockRuleId)));
+            board.setMockRules(rules);
+            return board;
+        });
+
+        if (updatedBoard.isEmpty() || !removed.get()) {
             log.info("Nothing to delete, mock rule not found for id: {}", mockRuleId);
             return;
         }
 
-        mockRuleCache.deleteMockRule(boardDto.getId(), mockRuleId);
-        mockRuleRepository.markDeleted(mockRuleId);
-        log.info("Mock rule marked as deleted: {}", mockRuleId);
+        log.info("Mock rule deleted: {}", mockRuleId);
+    }
+
+    private List<MockRule> mutableRules(Board board) {
+        return board.getMockRules() == null
+                ? new LinkedList<>()
+                : new LinkedList<>(board.getMockRules());
+    }
+
+    private MockRule toModel(MockRuleDto dto) {
+        return MockRule.builder()
+                .id(dto.getId())
+                .boardId(dto.getBoardId())
+                .method(dto.getMethod())
+                .path(dto.getPath())
+                .headers(dto.getHeaders())
+                .body(dto.getBody())
+                .statusCode(dto.getStatusCode())
+                .delay(dto.getDelay())
+                .timestamp(dto.getTimestamp())
+                .build();
+    }
+
+    private MockRuleDto toDto(MockRule mockRule) {
+        return MockRuleDto.builder()
+                .id(mockRule.getId())
+                .boardId(mockRule.getBoardId())
+                .method(mockRule.getMethod())
+                .path(mockRule.getPath())
+                .headers(mockRule.getHeaders())
+                .body(mockRule.getBody())
+                .statusCode(mockRule.getStatusCode())
+                .delay(mockRule.getDelay())
+                .timestamp(mockRule.getTimestamp())
+                .build();
     }
 }

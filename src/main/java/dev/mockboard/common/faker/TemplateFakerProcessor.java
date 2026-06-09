@@ -1,13 +1,11 @@
 package dev.mockboard.common.faker;
 
+import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.commons.text.lookup.StringLookup;
-import org.springframework.stereotype.Component;
-import tools.jackson.core.io.JsonStringEncoder;
 
 @Slf4j
-@Component
 public class TemplateFakerProcessor {
 
     private static final int MAX_KEY_LENGTH = 48;
@@ -29,7 +27,7 @@ public class TemplateFakerProcessor {
             var supplier = TemplateFakerDictionary.getDictionary().get(trimmedKey);
             if (supplier != null) {
                 var rawValue = supplier.get();
-                char[] escaped = ENCODER.quoteAsCharArray(rawValue);
+                char[] escaped = ENCODER.quoteAsString(rawValue);
                 return new String(escaped);
             }
 

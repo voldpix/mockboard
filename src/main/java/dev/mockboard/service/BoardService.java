@@ -1,90 +1,89 @@
 package dev.mockboard.service;
 
 import dev.mockboard.Constants;
-import dev.mockboard.common.cache.BoardCache;
-import dev.mockboard.common.cache.MockRuleCache;
-import dev.mockboard.common.cache.WebhookCache;
 import dev.mockboard.common.domain.dto.BoardDto;
-import dev.mockboard.common.exception.ForbiddenException;
+import dev.mockboard.common.exception.BadRequestException;
 import dev.mockboard.common.exception.NotFoundException;
 import dev.mockboard.common.utils.IdGenerator;
-import dev.mockboard.common.utils.StringUtils;
 import dev.mockboard.repository.BoardRepository;
 import dev.mockboard.repository.model.Board;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-
-import static dev.mockboard.Constants.BOARD_OWNER_TOKEN_LENGTH;
+import java.util.List;
 
 @Slf4j
-@Service
 @RequiredArgsConstructor
 public class BoardService {
 
-    private final ModelMapper modelMapper;
     private final BoardRepository boardRepository;
 
-    private final BoardCache boardCache;
-    private final MockRuleCache mockRuleCache;
-    private final WebhookCache webhookCache;
-
-    @Transactional
     public BoardDto createBoard() {
-        if (Constants.MAX_ACTIVE_BOARDS_CHECK_ENABLED) {
-            var currentActiveBoards = boardCache.size();
-            if (currentActiveBoards >= Constants.MAX_ACTIVE_BOARDS) {
-                throw new ForbiddenException("Maximum number of active boards exceeded.");
-            }
-        }
         var boardId = IdGenerator.generateBoardId();
-        var ownerToken = StringUtils.generate(BOARD_OWNER_TOKEN_LENGTH);
 
         var board = Board.builder()
                 .id(boardId)
-                .ownerToken(ownerToken)
                 .timestamp(Instant.now())
                 .build();
         var persisted = boardRepository.save(board);
 
-        var boardDto = modelMapper.map(persisted, BoardDto.class);
-        boardCache.put(persisted.getId(), boardDto);
-
         log.info("Created board: {}", persisted.getId());
-        return boardDto;
+        return toDto(persisted);
     }
 
-    @Transactional(readOnly = true)
-    public BoardDto getBoardDto(String boardId) {
-        var cachedOpt = boardCache.get(boardId);
-        if (cachedOpt.isPresent()) {
-            log.debug("Board cache hit: {}", boardId);
-            return cachedOpt.get();
-        }
+    public List<BoardDto> getBoards() {
+        return boardRepository.findAllOrderByTimestampDesc().stream()
+                .map(this::toDto)
+                .toList();
+    }
 
-        log.debug("Board cache miss: {}, fallback to DB", boardId);
-        var boardOpt = boardRepository.findByIdAndDeletedFalse(boardId);
+    public BoardDto getBoardDto(String boardId) {
+        var boardOpt = boardRepository.findById(boardId);
         if (boardOpt.isEmpty()) {
             throw new NotFoundException("Board not found by id: " + boardId);
         }
 
-        var boardDto = modelMapper.map(boardOpt.get(), BoardDto.class);
-        boardCache.put(boardDto.getId(), boardDto);
-        return boardDto;
+        return toDto(boardOpt.get());
     }
 
-    @Transactional
+    public BoardDto updateBoardName(String boardId, String name) {
+        var normalizedName = normalizeName(name);
+        var updated = boardRepository.updateById(boardId, board -> {
+            board.setName(normalizedName);
+            return board;
+        });
+        if (updated.isEmpty()) {
+            throw new NotFoundException("Board not found by id: " + boardId);
+        }
+
+        log.info("Updated board display name: {}", boardId);
+        return toDto(updated.get());
+    }
+
     public void deleteBoard(BoardDto boardDto) {
-        log.info("Soft delete board: {}", boardDto.getId());
+        log.info("Delete board: {}", boardDto.getId());
+        boardRepository.deleteById(boardDto.getId());
+    }
 
-        boardCache.invalidate(boardDto.getId());
-        mockRuleCache.invalidate(boardDto.getId());
-        webhookCache.invalidate(boardDto.getId());
+    private BoardDto toDto(Board board) {
+        return BoardDto.builder()
+                .id(board.getId())
+                .name(board.getName())
+                .timestamp(board.getTimestamp())
+                .mockRuleCount(board.getMockRules() == null ? 0 : board.getMockRules().size())
+                .build();
+    }
 
-        boardRepository.markDeleted(boardDto.getId());
+    private String normalizeName(String name) {
+        if (name == null || name.isBlank()) {
+            return null;
+        }
+
+        var normalized = name.trim();
+        if (normalized.length() > Constants.MAX_BOARD_NAME_LENGTH) {
+            throw new BadRequestException("Board name exceeds maximum length of " + Constants.MAX_BOARD_NAME_LENGTH);
+        }
+        return normalized;
     }
 }

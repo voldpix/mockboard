@@ -4,216 +4,159 @@
 </div>
 
 <div align="center">
-  <strong>Self-Hosted API Mocking Without the Overhead</strong>
+  <strong>Local-first HTTP API mocks for development and testing</strong>
   <br>
-  Built on Java 21 & Spring Boot 4
+  Java 21, Javalin, MapDB, Svelte
 </div>
 <br>
 
 <div align="center">
   <img src="https://img.shields.io/badge/Java-21-orange" alt="Java 21">
-  <img src="https://img.shields.io/badge/Spring_Boot-4.0-brightgreen" alt="Spring Boot 4">
+  <img src="https://img.shields.io/badge/Javalin-7.2-blue" alt="Javalin">
+  <img src="https://img.shields.io/badge/Svelte-5-ff3e00" alt="Svelte">
   <img src="https://img.shields.io/badge/Status-Beta-red" alt="Status">
   <img src="https://img.shields.io/badge/License-MIT-blue" alt="License">
 </div>
 
+## What It Is
 
-## ⚡ What is MockBoard?
+MockBoard is a small local app for mocking HTTP APIs.
 
-**MockBoard** is a lightweight, self-hostable tool for mocking HTTP APIs during local development and testing.
-
->**Fair warning:** This is early beta. The core works, but there's still a mess under the hood and some UI rough edges. It does what it's supposed to do, the rest is just polish.
-
-
-I built it because I needed to mock REST responses for local development
-without managing complex infrastructure or hand-coding endpoints with fake data.
-
-It is designed to do one thing well: Fake REST API responses (**JSON in / JSON out**).
+Run it, create a board, add mock rules, and call the generated `/m/{boardId}` URL from your app, tests, or scripts. Boards and rules are stored locally in MapDB, so there is no external database and no team account layer.
 
 <p align="center">
-
-  <img src="/public/screenshot_1.png" alt="screenshoot"/>
+  <img src="/public/screenshot_1.png" alt="screenshot"/>
 </p>
 
-### 📖 How this came to be
-This started as a SaaS idea I was working on with some folks using Elixir. 
-When the team fell apart, I still needed the tool, so I rebuilt the parts that actually mattered to me using Java (Spring Boot) + Vue.
+## What It Does
 
-Figured I would open-source in case it helps someone else who needs a simple, containerized mock server.
+- Creates local mock boards with optional display names.
+- Serves mock endpoints from `/m/{boardId}`.
+- Supports `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, and `OPTIONS`.
+- Matches paths exactly or with single-segment `*` wildcards.
+- Returns custom status codes, headers, JSON bodies, and response delays.
+- Generates fake response values with `{{template.keys}}`.
+- Shows incoming requests live in the UI through SSE.
+- Keeps request logs per board while the app is running.
 
-### 🏗 Architecture
-Main goal: Keep it lightweight. Minimal dependencies. 
+## Usage
 
-It's simple to use, but under the hood it's designed to handle a lot of traffic on cheap hardware.
+Start the app, open the UI, create a board, and add a mock rule.
 
-- Virtual Threads  - handles tons of concurrent requests
-- Cache-first (Caffeine) - reads hit the cache, not the database, so responses are fast
-- Async persistence - mock execution get queued, deduplicated and written to H2 in the background
+Example mock rule:
 
->You might ask - why such architecture for a tool?
-> 
->This architecture works both for solo use when you deploy locally, but also allows working in small teams if needed, so you can host it as a web version.
+- Method: `GET`
+- Path: `/api/users/*`
+- Status: `200`
+- Body:
 
-> **Note on "lightweight":** The Docker image is ~300-500MB (Java isn't tiny), but "lightweight" here means minimal dependencies, low resource usage at runtime, and simple deployment. It runs efficiently on cheap hardware - that's what matters.
-
----
-
-### 🛠️ Usage
-#### How to Mock an API
-Follow the [Hosting Guide](#-hosting).
-1. **Create a Board** → Get a unique URL: e.g., `http://localhost:8000/m/21gDw5rJ68BDCzZzjumF7XM9`
-2. **Add Endpoints** → Define what paths you want to mock (e.g., `/users`, `/api/data`)
-3. **Make Requests** → Append your endpoint to the board URL: `curl http://localhost:8000/m/21gDw5rJ68BDCzZzjumF7XM9/users`
-4. **See Results** → Watch requests appear live in the UI
-
-**Key Points**
-- Board ID is in the URL path
-- One unique board URL per browser session
-- Supports all HTTP methods (GET, POST, PUT, DELETE, etc.)
-- Use template variables for dynamic data: `{{user.email}}`, `{{system.uuid}}`
-
-**Example**
-Create endpoint `/api/users` with response:
 ```json
 {
   "id": "{{system.uuid}}",
-  "name": "{{user.fullName}}"
+  "name": "{{user.fullName}}",
+  "email": "{{user.email}}"
 }
 ```
-Call it: `curl http://localhost:8000/m/21gDw5rJ68BDCzZzjumF7XM9/api/users`
 
-Get dynamic data back every time. Simple.
+Call it:
 
----
+```shell
+curl http://localhost:8000/m/{boardId}/api/users/123
+```
 
-### ✨ Features
+Each call is logged in the board dashboard. If the rule body has templates, they are resolved on every request.
 
-### Response Delay (up to 10 seconds by default)
-Add artificial delays to mock responses for testing timeouts, loading states, and slow network conditions.
+## Dynamic Response Templates
 
-Useful for:
-- Testing timeout handling
-- Simulating slow APIs
-- Debugging loading indicators
-- Testing race conditions
+Mock response bodies must be valid JSON. Template values can be placed inside JSON strings:
 
-Configure the delay (in milliseconds) per endpoint - it applies to every request.
-
-
-### Dynamic Response Templates
-When creating mock responses, you can use template variables inside `{{}}` to generate realistic fake data. Mockboard uses [Datafaker](https://github.com/datafaker-net/datafaker) under the hood.
-
-#### Example:
 ```json
 {
   "id": "{{system.uuid}}",
-  "user": {
-    "name": "{{user.fullName}}",
-    "email": "{{user.email}}",
-    "phone": "{{user.phoneNumber}}"
-  },
-  "address": "{{address.full}}",
-  "bio": "{{content.paragraph}}"
+  "city": "{{address.city}}",
+  "bio": "{{content.sentence}}"
 }
 ```
 
-#### Available Template Variables:
-| Category | Variable | Example Output |
-|----------|----------|----------------|
-| **Personal Data** | `{{user.fullName}}` | John Smith |
-| | `{{user.firstName}}` | John |
-| | `{{user.lastName}}` | Smith |
-| | `{{user.email}}` | john.smith@example.com |
-| | `{{user.username}}` | jsmith42 |
-| | `{{user.phoneNumber}}` | +1-555-123-4567 |
-| | `{{user.avatar}}` | https://robohash.org/abc123 |
-| **Address** | `{{address.full}}` | 123 Main St, New York, NY 10001 |
-| | `{{address.city}}` | New York |
-| | `{{address.street}}` | 123 Main St |
-| | `{{address.zipCode}}` | 10001 |
-| | `{{address.country}}` | United States |
-| | `{{address.countryCode}}` | US |
-| **Content** | `{{content.char}}` | a |
-| | `{{content.word}}` | lorem |
-| | `{{content.sentence}}` | Lorem ipsum dolor sit amet. |
-| | `{{content.paragraph}}` | Lorem ipsum dolor sit... |
-| **System** | `{{system.int}}` | 42 |
-| | `{{system.long}}` | 9223372036854775807 |
-| | `{{system.double}}` | 3.141592653589793 |
-| | `{{system.bool}}` | true |
-| | `{{system.uuid}}` | 550e8400-e29b-41d4-a716-446655440000 |
-**More variables coming soon!** Open an issue if you need specific data types.
+Supported template keys:
 
-### Live Request Monitoring (SSE)
-Watch incoming requests in real-time via Server-Sent Events (SSE). Open a board in the UI and see requests appear instantly - no polling, no refresh.
+| Group | Keys |
+| --- | --- |
+| `user` | `fullName`, `firstName`, `lastName`, `email`, `username`, `phoneNumber`, `avatar` |
+| `address` | `full`, `city`, `street`, `zipCode`, `country`, `countryCode` |
+| `content` | `char`, `word`, `sentence`, `paragraph` |
+| `system` | `int`, `long`, `double`, `bool`, `uuid` |
 
-**Limitations (configurable):**
-- Max 1 SSE connection per board (keeps resource usage low)
-- Latest connection wins if multiple users/tabs open the same board
+Full key examples: `{{user.email}}`, `{{address.city}}`, `{{content.paragraph}}`, `{{system.uuid}}`.
 
-Perfect for debugging, monitoring webhooks, or watching integration tests in action.
+Unknown templates render as `[unknown: key]`. Generated values are escaped for JSON strings.
 
----
-## 🚀 Hosting
-<a name="hosting"></a>
-### Self-hosted version
-**Prerequisites:** [Java 21+](https://adoptium.net) or [Docker Desktop](https://www.docker.com).
+## Running Locally
 
-#### Get the Latest Beta
-To ensure stability, clone the specific tag:
+Prerequisites:
+
+- Java 21+
+- Node 20+ if you are rebuilding the frontend
+- Docker if you prefer Docker Compose
+
+Build the frontend:
+
 ```shell
-git clone --branch 0.3-beta --single-branch https://github.com/voldpix/mockboard.git
-
-# or get a current active branch (might be unstable or contain bugs)
-git clone https://github.com/voldpix/mockboard.git
-cd mockboard
+dev/scripts/build_frontend.sh
 ```
 
-#### Option 1: Native (Maven)
-Build and run the application locally:
-#### Run immediately:
-```shell
-./mvnw spring-boot:run
-```
-#### Build and run manually:
-```shell
-mvn clean package -DskipTests
-java -jar target/mockboard*.jar
-```
-#### Access: http://localhost:8000
+Build the Java jar:
 
-#### Option 2: Docker (Recommended)
-The easiest way to get started without installing Java:
+```shell
+dev/scripts/rebuild_java.sh
+```
+
+Build and run the jar:
+
+```shell
+dev/scripts/run_jar.sh
+```
+
+Manual run after building:
+
+```shell
+java -jar target/mockboard-0.3-beta.jar
+```
+
+Default URL:
+
+```text
+http://localhost:8000
+```
+
+Docker:
 
 ```shell
 docker compose up -d --build
 ```
-#### Access: http://localhost:8888
 
-**Note:** The first Docker build might take some time, as it prioritizes offline dependencies. Follow-up launches will be quick.
+Docker URL:
 
-#### Configuration
-Most limits are configurable via [Constants.java](src/main/java/dev/mockboard/Constants.java). You can adjust them either through the docker compose file or by updating the class directly.
+```text
+http://localhost:8888
+```
 
-#### UI customization:
-The Vue frontend is built and bundled into Spring Boot (`src/main/resources/static`), which makes UI-specific changes a bit tricky. If you need to modify the UI:
-> Make your changes in the Vue app
-> 
-> Build: `npm run build` (outputs to Spring Boot resources - see [vite.config.js](src/main/frontend/vite.config.js))
->
-> Run the app or follow the [Hosting Guide](#-hosting).
----
-## 🤝 Contributing
-Contributions are welcome, but please understand this is a **personal project** built to solve specific problems. It's not a product roadmap or feature request queue.
+Useful environment variables:
 
-### Guidelines:
-**Dependencies** - Adding new dependencies will likely result in a closed PR. The core principle is staying lightweight.
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `PORT` | `8000` | HTTP server port |
+| `MBD_STORE_PATH` | `data/mockboard.db` | Local MapDB file path |
+| `MBD_MAX_MOCK_RULES` | `1000` | Max mock rules per board |
+| `MBD_MAX_WEBHOOKS` | `100` | Max stored request log entries per board |
+| `MBD_VALIDATION_MOCK_MAX_ALLOWED_DELAY` | `10000` | Max response delay in milliseconds |
+| `MBD_VALIDATION_MOCK_MAX_BODY_LENGTH` | `100000` | Max JSON body length |
+| `MBD_VALIDATION_MOCK_MAX_PATH_LENGTH` | `1000` | Max mock path length |
 
-**Discuss first** - For anything beyond bug fixes, open an issue to discuss before writing code. This saves everyone time.
+The frontend source lives in `src/frontend`. The production build is served by Javalin from `src/main/resources/static`.
 
-**Philosophy** - The goal is simple: mock APIs quickly without complexity. Features that drift from this will be declined.
+## Contributing
 
-### What's welcome:
-- Bug fixes and performance improvements
-- Documentation updates
-- Small features that maintain simplicity
+No contributions are expected right now.
+
+This is a personal local tool, not a product roadmap. Issues or notes are still useful if something is broken, but pull requests may sit untouched or be closed if they do not match how the tool is used.

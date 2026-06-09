@@ -3,10 +3,6 @@ package dev.mockboard.common.domain.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.mockboard.Constants;
 import dev.mockboard.common.utils.StringUtils;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,12 +20,12 @@ public class MockRuleDto implements Serializable {
 
     private String id;
     @JsonIgnore private String boardId;
-    @NotEmpty private String method;
-    @NotEmpty private String path;
+    private String method;
+    private String path;
     private String headers;
     private String body;
-    @NotNull @Positive private Integer statusCode;
-    @NotNull @PositiveOrZero private Integer delay;
+    private Integer statusCode;
+    private Integer delay;
     private Instant timestamp;
     @JsonIgnore private transient Pattern compiledPattern;
     @JsonIgnore private transient Integer wildcardCount;

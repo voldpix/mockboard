@@ -1,32 +1,25 @@
 package dev.mockboard.repository.model;
 
 import lombok.*;
-import lombok.experimental.SuperBuilder;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.LinkedList;
+import java.util.List;
 
 @Getter
 @Setter
-@SuperBuilder
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = false, of = {"id", "ownerToken"})
+@EqualsAndHashCode(of = "id")
+public class Board implements Serializable {
 
-@Table("boards")
-public class Board extends PersistableEntity<String> implements Serializable {
+    private static final long serialVersionUID = 7751465435236789856L;
 
-    @Id
     private String id;
-
-    @Column("owner_token")
-    private String ownerToken;
-
-    @Column("created_at")
+    private String name;
     private Instant timestamp;
-
-    private boolean deleted;
+    @Builder.Default
+    private List<MockRule> mockRules = new LinkedList<>();
 }
